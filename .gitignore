@@ -1,0 +1,40 @@
+# ===== 절대 커밋 금지: 크레덴셜/토큰 =====
+client_secret.json
+token.json
+threads_token.json
+.env
+*.key
+*.pem
+
+# ===== 곡별 입력/생성물 =====
+tracks/**/audio.mp3
+tracks/**/*.wav
+tracks/**/cover.jpg
+tracks/**/out/
+tracks/**/_demucs/
+tracks/**/manifest.json
+
+# ===== 모델/캐시 =====
+*.pt
+*.ckpt
+.cache/
+__pycache__/
+*.pyc
+ffpass*.log
+*.mbtree
+
+# ===== 환경 =====
+.venv/
+venv/
+env/
+.DS_Store
+
+# 템플릿 폴더는 추적 유지(예외)
+!tracks/_template/
+
+# ===== 미디어 전역 차단(커밋 방지) =====
+*.mp3
+*.mp4
+*.wav
+*.zip
+bomnal_audio.mp3
