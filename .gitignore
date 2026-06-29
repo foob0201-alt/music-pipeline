@@ -39,3 +39,6 @@ env/
 *.wav
 *.zip
 bomnal_audio.mp3
+
+# ===== OneDrive 동기화 충돌 사본 차단 =====
+CONTEXT (*).md
