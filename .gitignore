@@ -25,6 +25,7 @@ ffpass*.log
 
 # ===== 환경 =====
 .venv/
+.venv-align/
 venv/
 env/
 .DS_Store
