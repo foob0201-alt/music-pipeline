@@ -1,0 +1,87 @@
+# ============================================================
+# HADES 루트 기본값 — 곡별 tracks/<곡>/config.yaml 로 일부만 덮어씀
+# ============================================================
+
+track:
+  name: _template
+  dir: tracks/_template
+
+paths:
+  audio: audio.mp3
+  lyrics_ko: lyrics_ko.txt
+  lyrics_en: lyrics_en.txt
+  cover: cover.jpg
+  out_dir: out
+
+meta:
+  title: "제목 미정"
+  artist: "영석고고"
+
+# ---------------- 정렬/자막 엔진 ----------------
+align:
+  use_demucs: true
+  demucs_model: htdemucs_ft        # P0: ft (동일비용·더 우수)
+  whisper_model: large-v3          # CPU면 medium 권장
+  device: cpu                      # cuda 가능 시 cuda
+  compute_type: int8               # cuda면 float16
+  language: ko
+  offset_ms: 0                     # 자막 전체 +/- 미세보정
+
+subtitle:
+  modes: [dual]                    # ko / en / dual (모드당 영상 1개)
+  font: "Malgun Gothic"            # 설치 폰트 명시(과거 Noto는 미설치→폴백)
+  font_size: 110                   # KO 기준 확대(EN=110×0.82≈90)
+  primary_color: "&H00FFFFFF"      # KO 미부른 색(흰색)
+  highlight_color: "&H0000D7FF"    # KO 부른 색(노랑) — \kf 채움
+  en_color: "&H00BED7DC"           # EN 크림(색 분리)
+  outline_color: "&H00202020"
+  outline: 3
+  shadow: 1
+  margin_v: 96                     # ko/en 단일 모드 세로위치
+  dual_ko_margin: 315              # dual: KO 위 (살짝 위로)
+  dual_en_margin: 201              # dual: EN 아래 (KO와 +25 동일, 간격 114 유지)
+  action:
+    fade_in_ms: 250
+    fade_out_ms: 250
+    pop_scale: 1.06
+
+# ---------------- 영상/인코딩 ----------------
+video:
+  resolution: [2560, 1440]         # 1440p
+  fps: 30
+  ken_burns:
+    zoom_end: 1.12
+  encode:
+    profile: high                  # H.264 High
+    two_pass: false                # 빠른 프로파일: 1-pass CRF(아래 crf). 장시간 2-pass 외부 kill 회피
+    crf: 16                        # 1-pass 품질기준(낮을수록 고화질). 마스터=16
+    bitrate: "20M"                 # ↓ 폴백(two_pass:true 또는 crf 제거 시에만 사용)
+    maxrate: "24M"
+    bufsize: "48M"
+    preset: medium                 # 빠른 프로파일(slow→medium). 정적 콘텐츠 화질 거의 동일·시간↓
+    acodec: aac
+    audio_bitrate: "384k"
+    audio_rate: 48000
+
+# ---------------- YouTube ----------------
+youtube:
+  enabled: false                   # 크레덴셜 준비 후 true
+  privacy: unlisted                # private / unlisted / public
+  category_id: "10"                # Music
+  client_secret: client_secret.json
+  token: token.json
+  title_template: "{title} ({ver_label})"
+  ver_labels:
+    ko: "한국어 자막"
+    en: "English Sub"
+    dual: "KO+EN"
+  tags: []
+  description: |
+    (가사 / 설명 — 곡별 config에서 채움)
+
+# ---------------- Threads ----------------
+threads:
+  enabled: false                   # 토큰 준비 후 true
+  token_file: threads_token.json
+  user_id: ""                      # Threads user id
+  text_template: "{title}\n\n{url}"
