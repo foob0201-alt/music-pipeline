@@ -11,7 +11,7 @@
 import sys, os, math, random
 from pathlib import Path
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageChops
 
 W, H = 2560, 1440
 SS   = 2                       # 슈퍼샘플 배율 (라인·글자 앤티앨리어싱)
@@ -39,6 +39,12 @@ TRACKS = {
         "title_latin": "Spring Day",
         "motif": "bomnal",              # 펼친 우산 + 남자 실루엣
     },
+    "geoul_oneul": {
+        "style": "mirror_afterimage",
+        "title_ko": "거울 속의 오늘",
+        "title_latin": "Today in the Mirror",
+        "motif": "geoul",               # 거울 프레임 + 거울 속 발레리나 잔상 + 거울 밖 발레리나 주인공 + 소주잔
+    },
 }
 
 # ── 스타일 프리셋 (팔레트 토큰) ───────────────────────────────────────────
@@ -57,6 +63,19 @@ STYLES = {
         "scrim":      (20, 49, 56),      # 코너 스크림(라디얼 페이드)
         "text":       (255, 255, 255),   # 글자
         "outline":    (14, 43, 48),      # 외곽선
+    },
+    # ── Mirror Afterimage (거울 속의 오늘 / 잔상·Afterimage) ──
+    # 발레리나 롱라인 실루엣 + 거울 속 잔상 + 달빛 푸른 톤(밝게·우중충 금지).
+    # 봄날 Bright Nocturne(차갑고 어두운 야경)과 구분: 밝은 아이스블루·여백·달빛 글로우.
+    "mirror_afterimage": {
+        "base":       [(233, 238, 247), (212, 221, 238), (188, 200, 224)],  # 페일아이스→페리윙클→블루그레이(수직)
+        "frame":      (198, 168, 96),    # 앤티크 골드 — 쿨 블루 위 거울테두리 포인트
+        "dancer":     (96, 116, 150),    # 발레리나 주인공 실루엣(딥 블루그레이)
+        "afterimage": (132, 150, 184),   # 거울 속 잔상(옅은 블루)
+        "soju_line":  (150, 166, 196),   # 소주잔 라인(쿨)
+        "glow":       (205, 217, 239),   # 달빛 후광(블루-화이트)
+        "text":       (35, 48, 68),      # 딥 네이비 글자
+        "scrim":      (238, 243, 251),   # 라이트 스크림(외곽)
     },
 }
 
@@ -382,6 +401,142 @@ def render_bright_nocturne(cfg, w, h):
     pim = add_corner_scrims(pim, st, w, h)      # 코너 스크림(가독성)
     return pim
 
+# ── 필름 그레인(쿨 틴트) ──────────────────────────────────────────────────
+def add_grain(pim, amount=0.05, seed=17):
+    """반해상도 노이즈를 키워 부드러운 클럼프 그레인 → 쿨 틴트로 가산. 우중충 금지(밝기 유지)."""
+    w, h = pim.size
+    rng = np.random.default_rng(seed)
+    nh, nw = max(1, h // 2), max(1, w // 2)
+    noise = rng.standard_normal((nh, nw)).astype(np.float32)
+    rng_span = float(noise.max() - noise.min()) or 1.0
+    nimg = Image.fromarray(((noise - noise.min()) / rng_span * 255).astype(np.uint8))
+    n = np.asarray(nimg.resize((w, h), Image.BILINEAR)).astype(np.float32) / 255.0 - 0.5  # -0.5..0.5
+    base = np.asarray(pim.convert("RGB")).astype(np.float32)
+    tint = np.array([0.82, 0.90, 1.0], np.float32)        # B↑ R↓ = 쿨(달빛) 그레인
+    base += (n[:, :, None] * tint[None, None, :]) * (amount * 255)
+    return Image.fromarray(np.clip(base, 0, 255).astype(np.uint8), "RGB").convert("RGBA")
+
+# ── 발레리나 롱라인 실루엣(머리 위 둥근 팔·쪽머리·모은 긴 다리 푸앵트) ──────
+def _ballerina(sd, cx, y0, H, fill, lw):
+    """롱라인 발레리나: 오버헤드 포르드브라(머리 위 둥근 아치 팔) + 작은 머리·쪽머리(번) +
+    갸름한 몸 + 모은 긴 다리, 발목→푸앵트. y0=팔 정점 y, H=정점→발끝 총 높이."""
+    sh_y  = y0 + 0.215 * H
+    sh_dx = 0.072 * H
+    # 팔(오버헤드 둥근 아치) — 타원 상단호 + 어깨로 내려오는 짧은 전완
+    arm_rx, arm_ry = 0.085 * H, 0.135 * H
+    arm_cy = y0 + arm_ry                                   # 호의 정점 = y0
+    sd.arc([cx - arm_rx, arm_cy - arm_ry, cx + arm_rx, arm_cy + arm_ry],
+           180, 360, fill=fill, width=lw)
+    sd.line([(cx - arm_rx, arm_cy), (cx - sh_dx, sh_y)], fill=fill, width=lw, joint="curve")
+    sd.line([(cx + arm_rx, arm_cy), (cx + sh_dx, sh_y)], fill=fill, width=lw, joint="curve")
+    # 머리 + 쪽머리(번, 정수리에 작게 겹침)
+    head_rx, head_ry = 0.038 * H, 0.046 * H
+    head_cy = y0 + 0.150 * H
+    bun_r = 0.016 * H
+    sd.ellipse([cx - bun_r, head_cy - head_ry - bun_r * 0.6, cx + bun_r, head_cy - head_ry + bun_r * 1.0], fill=fill)
+    sd.ellipse([cx - head_rx, head_cy - head_ry, cx + head_rx, head_cy + head_ry], fill=fill)
+    # 몸통(어깨→잘록 허리→골반) — 채움 폴리곤
+    sh_pt   = sh_y + 0.01 * H
+    waist_y = y0 + 0.45 * H; waist_w = 0.036 * H
+    hip_y   = y0 + 0.53 * H; hip_w   = 0.056 * H
+    sd.polygon([
+        (cx - sh_dx * 0.66, sh_pt),
+        (cx - waist_w, waist_y),
+        (cx - hip_w,   hip_y),
+        (cx + hip_w,   hip_y),
+        (cx + waist_w, waist_y),
+        (cx + sh_dx * 0.66, sh_pt),
+    ], fill=fill)
+    # 두 갈래 긴 다리(모은 듯, 발끝만 작은 V로 푸앵트) — 단검형 방지
+    knee_y  = y0 + 0.73 * H
+    ankle_y = y0 + 0.92 * H
+    toe_y   = y0 + H
+    gap     = 0.005 * H                                   # 다리 사이 가는 분리선
+    thigh_w = 0.030 * H                                   # 허벅지(외측)
+    calf_w  = 0.022 * H                                   # 종아리(외측)
+    toe_w   = 0.013 * H
+    for s in (-1, +1):                                    # 좌(-1)·우(+1) 다리
+        sd.polygon([
+            (cx + s * hip_w,            hip_y),           # 외측 골반
+            (cx + s * gap,              hip_y),           # 내측 골반(중앙 근접)
+            (cx + s * gap,              ankle_y),         # 내측 발목(수직 = 모은 다리)
+            (cx + s * (gap + toe_w),    toe_y),           # 내측 발끝
+            (cx + s * (calf_w + toe_w), toe_y),           # 외측 발끝(작은 V)
+            (cx + s * calf_w,           ankle_y),         # 외측 발목
+            (cx + s * thigh_w,          knee_y),          # 외측 무릎
+        ], fill=fill)
+
+# ── motif: 거울 프레임 + 거울 속 발레리나 잔상 + 거울 밖 발레리나 주인공 + 소주잔 ──
+def motif_geoul(size, st):
+    """잔상·Afterimage: 중앙 타원 거울(골드) 안에 발레리나의 옅은·어긋난 다중 잔상(블러),
+    거울 바깥(좌측)에 롱라인 발레리나 주인공(푸앵트), 그 아래 작은 소주잔 1개."""
+    w, h = size
+    layer = Image.new("RGBA", size, (0, 0, 0, 0))
+    frame = st["frame"] + (255,)
+    lw = max(3, int(w * 0.0024))
+
+    # ── 거울 기하(스탠딩 타원 거울, 중앙) ──
+    mcx, mcy = w * 0.50, h * 0.49
+    mrx, mry = w * 0.116, h * 0.298
+    outer = [mcx - mrx, mcy - mry, mcx + mrx, mcy + mry]
+    inset = w * 0.013
+    inner = [outer[0] + inset, outer[1] + inset, outer[2] - inset, outer[3] - inset]
+    gin = inset * 1.7
+    glass = [outer[0] + gin, outer[1] + gin, outer[2] - gin, outer[3] - gin]
+
+    # ── 거울 속 잔상(afterimage): 같은 발레리나의 옅은 반영, 어긋난 다중 고스트(블러) ──
+    ghost = Image.new("RGBA", size, (0, 0, 0, 0))
+    gd = ImageDraw.Draw(ghost)
+    gH = h * 0.400                                                   # 유리 안에 온전히 들어오게 축소
+    gy0 = mcy - mry + h * 0.050
+    glw = max(2, int(w * 0.0026))
+    for dx, a in ((w * 0.022, 55), (-w * 0.011, 80), (0.0, 120)):    # 뒤→앞, 어긋난 3겹 옅은 잔상
+        _ballerina(gd, mcx + dx, gy0, gH, st["afterimage"] + (a,), glw)
+    ghost = ghost.filter(ImageFilter.GaussianBlur(int(w * 0.0024)))
+    gmask = Image.new("L", size, 0)
+    ImageDraw.Draw(gmask).ellipse(glass, fill=255)                   # 유리면 안으로 클립
+    ghost.putalpha(ImageChops.multiply(ghost.getchannel("A"), gmask))
+    layer = Image.alpha_composite(layer, ghost)
+
+    # ── 거울 프레임(앤티크 골드, 이중선 + 상단 꼭지) ──
+    d = ImageDraw.Draw(layer)
+    d.ellipse(outer, outline=frame, width=lw)
+    d.ellipse(inner, outline=frame, width=max(2, lw - 2))
+    fr = max(3, int(w * 0.004))
+    d.ellipse([mcx - fr, outer[1] - fr * 2.2, mcx + fr, outer[1] - fr * 0.2], fill=frame)
+
+    # ── 주인공: 롱라인 발레리나(거울 바깥·좌측, 푸앵트) ──
+    real = Image.new("RGBA", size, (0, 0, 0, 0))
+    rd = ImageDraw.Draw(real)
+    _ballerina(rd, w * 0.295, h * 0.250, h * 0.595, st["dancer"] + (200,), max(3, int(w * 0.0040)))
+    layer = Image.alpha_composite(layer, real)
+    d = ImageDraw.Draw(layer)
+
+    # ── 하단 소주잔 1개(쿨 라인아트) ──
+    sg = st["soju_line"] + (255,)
+    glw2 = max(2, int(w * 0.0019))
+    gcx, gtop = w * 0.50, h * 0.792
+    gw_top, gw_bot, gh = w * 0.027, w * 0.021, h * 0.058
+    gbot = gtop + gh
+    d.line([(gcx - gw_top / 2, gtop), (gcx - gw_bot / 2, gbot)], fill=sg, width=glw2)   # 좌 벽
+    d.line([(gcx + gw_top / 2, gtop), (gcx + gw_bot / 2, gbot)], fill=sg, width=glw2)   # 우 벽
+    d.line([(gcx - gw_bot / 2, gbot), (gcx + gw_bot / 2, gbot)], fill=sg, width=glw2)   # 바닥
+    d.ellipse([gcx - gw_top / 2, gtop - gh * 0.07, gcx + gw_top / 2, gtop + gh * 0.07],
+              outline=sg, width=glw2)                                                    # 잔 입구
+    d.line([(gcx - gw_top * 0.34, gtop + gh * 0.30), (gcx + gw_top * 0.34, gtop + gh * 0.30)],
+           fill=sg, width=max(1, glw2 - 1))                                              # 술 수면
+    return layer
+
+def render_mirror_afterimage(cfg, w, h):
+    st = STYLES["mirror_afterimage"]
+    img = dawn_gradient(w, h, st["base"])                                # 페일아이스→블루그레이(수직)
+    img = add_glow(img, w * 0.50, h * 0.45, h * 0.40, st["glow"], 0.08 * 255)   # 달빛 후광(거울 뒤)
+    img = np.clip(img, 0, 255).astype(np.uint8)
+    pim = Image.fromarray(img, "RGB").convert("RGBA")
+    pim = add_grain(pim, amount=0.05)                                    # 쿨 필름 그레인
+    pim = Image.alpha_composite(pim, motif_geoul((w, h), st))            # 거울+잔상+발레리나+소주잔
+    return pim
+
 # ── 메인 렌더 ─────────────────────────────────────────────────────────────
 def render(track, style=None):
     cfg = TRACKS.get(track)
@@ -393,6 +548,8 @@ def render(track, style=None):
     # 1) 스타일별 배경+모티프 합성
     if style == "bright_nocturne":
         pim = render_bright_nocturne(cfg, w, h); legible = True
+    elif style == "mirror_afterimage":
+        pim = render_mirror_afterimage(cfg, w, h); legible = "bright_dark"
     else:
         pim = render_luminous_dawn(cfg, w, h);   legible = False
 
@@ -401,7 +558,24 @@ def render(track, style=None):
     mx, my = int(w * 0.07), int(h * 0.08)
     bb = ko.getbbox(cfg["title_ko"]); ly = my + (bb[3] - bb[1]) + 30 * SS
 
-    if legible:
+    if legible == "bright_dark":
+        sty = STYLES[style]
+        # 라이트 헤일로(스크림 블러) — 딥 네이비 글자를 밝은 배경 위로 띄움
+        halo = Image.new("RGBA", pim.size, (0, 0, 0, 0))
+        dh = ImageDraw.Draw(halo)
+        dh.text((mx, my), cfg["title_ko"], font=ko, fill=sty["scrim"] + (225,),
+                stroke_width=6 * SS, stroke_fill=sty["scrim"] + (225,))
+        dh.text((mx + 6 * SS, ly), cfg["title_latin"], font=la, fill=sty["scrim"] + (205,),
+                stroke_width=4 * SS, stroke_fill=sty["scrim"] + (205,))
+        halo = halo.filter(ImageFilter.GaussianBlur(5 * SS))
+        pim = Image.alpha_composite(pim, halo)
+        draw = ImageDraw.Draw(pim)
+        text_outlined(draw, (mx, my), cfg["title_ko"], ko,
+                      fill=sty["text"], stroke=sty["scrim"], sw=4 * SS)    # 딥브라운+라이트 외곽
+        text_outlined(draw, (mx + 6 * SS, ly), cfg["title_latin"], la,
+                      fill=sty["text"], stroke=sty["scrim"], sw=2 * SS)
+        rstroke = sty["text"]                                             # Reina 딥 외곽(번짐 없음)
+    elif legible:
         sty = STYLES[style]
         # 그림자 레이어(딥, 블러)
         shadow = Image.new("RGBA", pim.size, (0, 0, 0, 0))
