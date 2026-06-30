@@ -1,0 +1,70 @@
+================================================================
+ 거울 속의 오늘 (geoul_oneul) — dual 영상 렌더 결과
+================================================================
+렌더 완료    : 2026-06-30 16:19:00 (KST)
+산출물       : tracks/geoul_oneul/out/geoul_oneul_dual.mp4
+파일 크기    : 73,769,993 bytes (73.8 MB)
+판정         : PASS (전 항목 표준 충족)
+
+----------------------------------------------------------------
+ 입력 (align 재실행 없이 기존 산출물 재사용)
+----------------------------------------------------------------
+align.json   : 19줄 (2026-06-29 19:11 생성, torchaudio MMS_FA)
+dual ASS     : tracks/geoul_oneul/out/geoul_oneul_dual.ass — KO 19 / EN 19
+cover.jpg    : 2026-06-30 16:02:29 렌더 (style=mirror_afterimage:
+               발레리나 롱라인 실루엣 · 트와일라잇 블루 · 거울잔상)
+               자체점검: cover.jpg(16:02:29) > cover_render.py(16:02:06) → 최신본 확인
+audio.mp3    : tracks/geoul_oneul/audio.mp3
+
+----------------------------------------------------------------
+ 인코딩 설정 (root config.yaml)
+----------------------------------------------------------------
+H.264 High · yuv420p · BT.709(tv) · 1-pass CRF 16 · preset medium
+2560x1440 · 30fps · Ken Burns 줌인(zoom_end 1.12) · 자막 번 굽기(libass)
+AAC-LC 48kHz · +faststart(moov front)
+
+----------------------------------------------------------------
+ ffprobe 검증 (원본 출력)
+----------------------------------------------------------------
+[VIDEO]  ffprobe -select_streams v:0
+codec_name=h264
+profile=High
+width=2560
+height=1440
+pix_fmt=yuv420p
+color_range=tv
+color_space=bt709
+color_transfer=bt709
+color_primaries=bt709
+r_frame_rate=30/1
+
+[AUDIO]  ffprobe -select_streams a:0
+codec_name=aac
+profile=LC
+sample_rate=48000
+channels=2
+bit_rate=378199
+
+[FORMAT]
+nb_streams=2
+duration=204.800000
+size=73769993
+bit_rate=2881640
+
+[FASTSTART]  head -c 4MB | grep -abo "moov|mdat"
+36:moov
+226616:mdat
+→ moov(36) < mdat(226616) : 스트리밍 최적화(moov front) 확인
+
+----------------------------------------------------------------
+ 표준 대조표
+----------------------------------------------------------------
+[OK] 코덱        h264 / profile High
+[OK] 해상도      2560x1440 (1440p)
+[OK] 픽셀포맷    yuv420p
+[OK] 컬러        BT.709 primaries/transfer/space · range tv
+[OK] 프레임레이트 30/1 fps
+[OK] 길이        204.800s (음원 길이 일치)
+[OK] 오디오      AAC-LC 48000Hz stereo ~378k
+[OK] faststart   moov < mdat
+================================================================
