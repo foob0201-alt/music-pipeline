@@ -10,7 +10,8 @@ threads_token.json
 tracks/**/audio.mp3
 tracks/**/*.wav
 tracks/**/cover.jpg
-tracks/**/out/
+tracks/**/out/*
+!tracks/**/out/.cover_ok
 tracks/**/_demucs/
 tracks/**/manifest.json
 
