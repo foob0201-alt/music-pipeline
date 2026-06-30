@@ -20,11 +20,22 @@ try:
 except Exception:
     pass
 
-SECRET_RE = re.compile(
+# (1) 시크릿 '파일명' — 접근 경로/명령에서 검사 (파일 내용에선 검사 안 함:
+#     .gitignore/README 등이 이 이름을 합법적으로 언급해도 오탐 안 나게)
+PATH_RE = re.compile(
     r"(client_secret[\w.\-]*\.json"
     r"|token\.json"
     r"|threads_token\.json"
-    r"|\.env(?![\w]))",
+    r"|\.env(?![\w])"
+    r"|id_rsa\b|id_ed25519\b)",
+    re.IGNORECASE,
+)
+# (2) 시크릿 '값 자료' — 경로/명령 + 파일 내용까지 검사 (레포 파일 기록 시도 차단).
+#     fal 키 형식 = UUID:hex(32+)  ·  PEM 개인키 헤더. 환경변수 '이름'은 차단 안 함
+#     (os.environ["FAL_KEY"] 같은 정상 코드/모델 id "fal-ai/..."는 통과).
+VALUE_RE = re.compile(
+    r"([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:[0-9a-f]{32,}"
+    r"|-----BEGIN[ A-Z]*PRIVATE KEY-----)",
     re.IGNORECASE,
 )
 
@@ -35,15 +46,17 @@ def main() -> int:
     except Exception:
         return 0
     ti = data.get("tool_input") or {}
-    hay = " ".join(str(ti.get(k, "")) for k in ("file_path", "path", "command"))
-    if not hay.strip():
-        return 0
-    m = SECRET_RE.search(hay)
-    if m:
+    path_hay = " ".join(str(ti.get(k, "")) for k in ("file_path", "path", "command"))
+    value_hay = path_hay + " " + " ".join(
+        str(ti.get(k, "")) for k in ("content", "new_string", "old_string"))
+    mp = PATH_RE.search(path_hay)
+    mv = VALUE_RE.search(value_hay)
+    if mp or mv:
+        what = mp.group(0) if mp else "<credential value>"   # 값은 절대 에코하지 않음
         sys.stderr.write(
-            f"[secret_guard] 차단: 크레덴셜/시크릿 접근 금지 — '{m.group(0)}'.\n"
-            f"  (client_secret*.json · token.json · threads_token.json · .env)\n"
-            f"  HADES 보안 규약상 읽기·출력·편집 불가.\n")
+            f"[secret_guard] 차단: 크레덴셜/시크릿 - '{what}'.\n"
+            f"  파일명(client_secret*.json·token.json·threads_token.json·.env·id_rsa) 또는\n"
+            f"  키 값 자료(fal UUID:hex · PEM 개인키)의 접근·기록 금지.\n")
         return 2
     return 0
 

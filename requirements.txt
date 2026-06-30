@@ -1,0 +1,26 @@
+# ===== 핵심 =====
+pyyaml>=6.0
+
+# ===== 정렬/보컬분리 (정렬 단계 실행 시) =====
+# CPU만 있어도 동작(느림). GPU(CUDA 12.x) 권장.
+whisperx>=3.1.1
+demucs>=4.0.1
+# torch는 플랫폼별로 직접 설치 권장:
+#   CPU:  pip install torch torchaudio
+#   CUDA: https://pytorch.org 에서 cu12x 휠 선택
+
+# ===== 업로드 (YouTube) =====
+google-api-python-client>=2.0
+google-auth-oauthlib>=1.0
+google-auth>=2.0
+
+# ===== 게시 (Threads) =====
+requests>=2.31
+
+# ===== 커버 생성(선택, scripts/) =====
+Pillow>=10.0
+numpy>=1.24
+
+# ===== fal.ai 커버 배경 생성(선택, hades/fal_bg.py) =====
+# FAL_KEY 환경변수 필요(레포 기록 금지). httpx 는 fal-client 의존성으로 함께 설치됨.
+fal-client>=1.0.0
