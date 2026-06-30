@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".venv-align/Scripts/python.exe .claude/hooks/danger_guard.py"
+          },
+          {
+            "type": "command",
+            "command": ".venv-align/Scripts/python.exe .claude/hooks/cover_gate.py"
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Edit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".venv-align/Scripts/python.exe .claude/hooks/secret_guard.py"
+          }
+        ]
+      }
+    ]
+  }
+}
