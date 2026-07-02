@@ -57,6 +57,12 @@ TRACKS = {
         "title_latin": "That's How It Passes",   # KO 아래 EN 부제
         "motif": None,                  # 사진 배경(Soft Grain Analog 사계절 순환)이 색면 그 자체
     },
+    "songdo": {
+        "style": "color_field",
+        "title_ko": "송도유원지",
+        "title_latin": "Songdo Yuwonji",   # KO 아래 EN 부제
+        "motif": None,                  # 사진 배경(송도유원지 노을·따뜻한 필름 그레인)이 색면 그 자체
+    },
 }
 
 # ── 스타일 프리셋 (팔레트 토큰) ───────────────────────────────────────────
