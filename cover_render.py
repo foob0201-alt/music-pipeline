@@ -63,6 +63,12 @@ TRACKS = {
         "title_latin": "Songdo Yuwonji",   # KO 아래 EN 부제
         "motif": None,                  # 사진 배경(송도유원지 노을·따뜻한 필름 그레인)이 색면 그 자체
     },
+    "okryeon": {
+        "style": "color_field",
+        "title_ko": "옥련동",
+        "title_latin": "Okryeon-dong",  # KO 아래 EN 부제
+        "motif": None,                  # 사진 배경(옥련동 대낮 블루·바다 향한 길)이 색면 그 자체
+    },
 }
 
 # ── 스타일 프리셋 (팔레트 토큰) ───────────────────────────────────────────

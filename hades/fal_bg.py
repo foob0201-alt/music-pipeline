@@ -38,17 +38,17 @@ STYLE_REF_DIR = REPO / "style_ref"
 # 하우스 스타일 템플릿 — 오늘 songdo 최종(대낮 블루) 확정 골격. {scene} 만 곡별로 교체.
 # ─────────────────────────────────────────────────────────────────────────
 HOUSE_STYLE = (
-    "Bright clear daytime photograph, {scene}, under a vivid blue midday sky. "
-    "Brilliant sunny daylight, crisp white clouds, wide open airy composition, "
-    "vivid saturated clean blue and fresh natural colors, breezy uplifting mood, "
-    "fine 35mm film grain, gentle soft-focus depth, generous bright empty blue sky "
-    "across the top for title text, cinematic 16:9."
+    "Bright clear high-key daytime photograph, {scene}, under a clean vivid blue sky. "
+    "Brilliant azure and turquoise tones, crisp sharp daylight, sparkling clear water, "
+    "crisp white clouds, wide open airy composition, vivid saturated fresh colors, "
+    "sharp clean focus, generous bright empty blue sky across the top for title text, "
+    "cinematic 16:9."
 )
-# 고정 네거티브(하우스 규약) — flux-2-pro 는 별도 negative 필드가 없어 프롬프트에 명시
+# 고정 네거티브(하우스 규약, CONTEXT §1 확정) — flux-2-pro 별도 negative 필드 없어 프롬프트에 명시
 HOUSE_NEGATIVE = (
-    " Avoid: yellow tint, golden hour, sunset, orange or amber cast, warm color wash, "
-    "dark or moody tones, night, low light, gray washed-out desaturation, "
-    "people, text, lettering, watermark, logo."
+    " Avoid: yellow tint, sepia, golden hour, sunset, orange or amber cast, warm color wash, "
+    "film wash, film grain, haze, soft blur, muted or grey tones, gloom, dark or moody tones, "
+    "night, low light, washed-out desaturation, people, text, lettering, watermark, logo."
 )
 # 레퍼런스 사용 시 스타일-온리 지시(레퍼런스의 구도/건물 복제 금지)
 REF_PREFIX = (
