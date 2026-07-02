@@ -45,6 +45,18 @@ TRACKS = {
         "title_latin": "Today in the Mirror",
         "motif": "geoul",               # 거울 프레임 + 거울 속 발레리나 잔상 + 거울 밖 발레리나 주인공 + 소주잔
     },
+    "donghae": {
+        "style": "color_field",
+        "title_ko": "동해로",
+        "title_latin": "To the Sea",    # KO 아래 EN 부제(작게, 같은 좌상단 블록)
+        "motif": None,                  # 모티프 생략(배경이 강함)
+    },
+    "geureoke": {
+        "style": "color_field",
+        "title_ko": "그렇게 지나간다",
+        "title_latin": "That's How It Passes",   # KO 아래 EN 부제
+        "motif": None,                  # 사진 배경(Soft Grain Analog 사계절 순환)이 색면 그 자체
+    },
 }
 
 # ── 스타일 프리셋 (팔레트 토큰) ───────────────────────────────────────────
@@ -76,6 +88,12 @@ STYLES = {
         "glow":       (205, 217, 239),   # 달빛 후광(블루-화이트)
         "text":       (35, 48, 68),      # 딥 네이비 글자
         "scrim":      (238, 243, 251),   # 라이트 스크림(외곽)
+    },
+    # ── Color-Field (동해로 / fal 사진 배경 + 시그니처만) ──
+    # 사진(노을 해안 로드)이 색면 그 자체. glow/모티프 없음·워시아웃 방지, 시그니처만 얹음.
+    "color_field": {
+        "text":    (255, 255, 255),   # 흰 제목
+        "outline": (18, 26, 38),      # 딥 외곽(차콜-네이비) — 밝은 사진 위 또렷하게
     },
 }
 
@@ -374,9 +392,16 @@ def add_corner_scrims(pim, st, w, h):
     ov[..., 3] = (a * 255).astype(np.uint8)
     return Image.alpha_composite(pim, Image.fromarray(ov, "RGBA"))
 
+# ── 외부 배경 이미지 베이스 (선택, --bg) ──────────────────────────────────
+def _bg_base(bg_path, w, h):
+    """외부 배경 이미지를 작업 캔버스(w,h)에 LANCZOS 맞춤 → RGB float (h,w,3) 베이스.
+    dawn_gradient 출력과 동일 형식이라 이후 add_glow/add_grain/motif 를 그대로 적용."""
+    im = Image.open(bg_path).convert("RGB").resize((w, h), Image.LANCZOS)
+    return np.asarray(im).astype(np.float32)
+
 # ── 스타일별 배경 합성 ────────────────────────────────────────────────────
-def render_luminous_dawn(cfg, w, h):
-    img = dawn_gradient(w, h, cfg["sky"])
+def render_luminous_dawn(cfg, w, h, bg=None):
+    img = _bg_base(bg, w, h) if bg else dawn_gradient(w, h, cfg["sky"])
     for gx, gy, gr, col, stg in cfg["glows"]:
         img = add_glow(img, gx * w, gy * h, gr * h, col, stg * 255)
     img = np.clip(img, 0, 255).astype(np.uint8)
@@ -388,9 +413,9 @@ def render_luminous_dawn(cfg, w, h):
         pim = Image.alpha_composite(pim, motif((w, h)))
     return pim.convert("RGBA")
 
-def render_bright_nocturne(cfg, w, h):
+def render_bright_nocturne(cfg, w, h, bg=None):
     st = STYLES["bright_nocturne"]
-    img = vstack_gradient(w, h, st["sky"], st["ground"], 0.62)          # sky→ground 수직
+    img = _bg_base(bg, w, h) if bg else vstack_gradient(w, h, st["sky"], st["ground"], 0.62)  # sky→ground 수직
     img = add_glow(img, w * 0.50, h * 0.40, h * 0.55, st["glow"], 0.20 * 255)  # amber
     img = np.clip(img, 0, 255).astype(np.uint8)
     pim = Image.fromarray(img, "RGB").convert("RGBA")
@@ -527,9 +552,9 @@ def motif_geoul(size, st):
            fill=sg, width=max(1, glw2 - 1))                                              # 술 수면
     return layer
 
-def render_mirror_afterimage(cfg, w, h):
+def render_mirror_afterimage(cfg, w, h, bg=None):
     st = STYLES["mirror_afterimage"]
-    img = dawn_gradient(w, h, st["base"])                                # 페일아이스→블루그레이(수직)
+    img = _bg_base(bg, w, h) if bg else dawn_gradient(w, h, st["base"])  # 페일아이스→블루그레이(수직)
     img = add_glow(img, w * 0.50, h * 0.45, h * 0.40, st["glow"], 0.08 * 255)   # 달빛 후광(거울 뒤)
     img = np.clip(img, 0, 255).astype(np.uint8)
     pim = Image.fromarray(img, "RGB").convert("RGBA")
@@ -537,26 +562,55 @@ def render_mirror_afterimage(cfg, w, h):
     pim = Image.alpha_composite(pim, motif_geoul((w, h), st))            # 거울+잔상+발레리나+소주잔
     return pim
 
+def render_color_field(cfg, w, h, bg=None):
+    # 사진 배경(--bg)이 색면 그 자체 — glow/그레인/모티프 없음, 워시아웃 방지. 시그니처는 render()에서.
+    if bg:
+        img = _bg_base(bg, w, h)
+    else:
+        img = dawn_gradient(w, h, [(38, 58, 86), (18, 33, 58)])         # bg 없을 때 쿨 폴백
+    img = np.clip(img, 0, 255).astype(np.uint8)
+    return Image.fromarray(img, "RGB").convert("RGBA")
+
+# ── 곡별 config.yaml 커버 오버라이드 (선택) ───────────────────────────────
+def _track_overrides(track):
+    """곡별 config.yaml 의 커버 미세조정 키만 추출(없으면 빈 dict).
+    cover_render 는 본래 config.yaml 을 안 읽지만, title_ko_scale(제목 %)·
+    title_en_gap(EN 부제 간격 px) 같은 per-track 오버라이드는 여기서만 선택 반영.
+    로드 실패(yaml 미설치·파일 없음)해도 커버는 기본값으로 렌더된다."""
+    try:
+        from hades_util import load_config
+        c = load_config("config.yaml", f"tracks/{track}/config.yaml")
+        return {k: c[k] for k in ("title_ko_scale", "title_en_gap", "title_en_scale") if k in c}
+    except Exception:        # noqa: BLE001 — 오버라이드는 부가기능, 실패해도 렌더 지속
+        return {}
+
 # ── 메인 렌더 ─────────────────────────────────────────────────────────────
-def render(track, style=None):
+def render(track, style=None, bg=None):
     cfg = TRACKS.get(track)
     if cfg is None:
         raise SystemExit(f"[ERR] TRACKS에 '{track}' 정의 없음 — cover_render.py 레지스트리에 추가 필요")
     w, h = W * SS, H * SS
     style = style or cfg.get("style", "luminous_dawn")
+    ov = _track_overrides(track)                       # 곡별 커버 미세조정(config.yaml)
+    ko_scale = float(ov.get("title_ko_scale", 100)) / 100.0   # KO 제목 배율(기본 100%)
+    en_gap   = float(ov.get("title_en_gap", 30))              # EN 부제 간격 px(기본 30)
+    en_scale = float(ov.get("title_en_scale", 100)) / 100.0   # EN 부제 배율(기본 100%)
 
-    # 1) 스타일별 배경+모티프 합성
+    # 1) 스타일별 배경+모티프 합성 (bg 지정 시 dawn_gradient 대신 외부 이미지 베이스)
     if style == "bright_nocturne":
-        pim = render_bright_nocturne(cfg, w, h); legible = True
+        pim = render_bright_nocturne(cfg, w, h, bg=bg); legible = True
     elif style == "mirror_afterimage":
-        pim = render_mirror_afterimage(cfg, w, h); legible = "bright_dark"
+        pim = render_mirror_afterimage(cfg, w, h, bg=bg); legible = "bright_dark"
+    elif style == "color_field":
+        pim = render_color_field(cfg, w, h, bg=bg); legible = "photo"
     else:
-        pim = render_luminous_dawn(cfg, w, h);   legible = False
+        pim = render_luminous_dawn(cfg, w, h, bg=bg);   legible = False
 
     # 2) 제목 (좌상단 mx=0.07w locked) — KO + 라틴
-    ko = font_ko(int(120 * SS)); la = font_latin(int(42 * SS))
+    ko = font_ko(int(120 * SS * ko_scale)); la = font_latin(int(42 * SS * en_scale))
     mx, my = int(w * 0.07), int(h * 0.08)
-    bb = ko.getbbox(cfg["title_ko"]); ly = my + (bb[3] - bb[1]) + 30 * SS
+    bb = ko.getbbox(cfg["title_ko"]); ly = my + (bb[3] - bb[1]) + int(en_gap * SS)
+    lx_center = mx + int(ko.getlength(cfg["title_ko"]) / 2)   # EN 부제: KO 폭 중심선에 센터(모든 트랙 공통 디폴트)
 
     if legible == "bright_dark":
         sty = STYLES[style]
@@ -565,15 +619,15 @@ def render(track, style=None):
         dh = ImageDraw.Draw(halo)
         dh.text((mx, my), cfg["title_ko"], font=ko, fill=sty["scrim"] + (225,),
                 stroke_width=6 * SS, stroke_fill=sty["scrim"] + (225,))
-        dh.text((mx + 6 * SS, ly), cfg["title_latin"], font=la, fill=sty["scrim"] + (205,),
+        dh.text((lx_center, ly), cfg["title_latin"], font=la, anchor="ma", fill=sty["scrim"] + (205,),
                 stroke_width=4 * SS, stroke_fill=sty["scrim"] + (205,))
         halo = halo.filter(ImageFilter.GaussianBlur(5 * SS))
         pim = Image.alpha_composite(pim, halo)
         draw = ImageDraw.Draw(pim)
         text_outlined(draw, (mx, my), cfg["title_ko"], ko,
                       fill=sty["text"], stroke=sty["scrim"], sw=4 * SS)    # 딥브라운+라이트 외곽
-        text_outlined(draw, (mx + 6 * SS, ly), cfg["title_latin"], la,
-                      fill=sty["text"], stroke=sty["scrim"], sw=2 * SS)
+        text_outlined(draw, (lx_center, ly), cfg["title_latin"], la,
+                      fill=sty["text"], stroke=sty["scrim"], sw=2 * SS, anchor="ma")
         rstroke = sty["text"]                                             # Reina 딥 외곽(번짐 없음)
     elif legible:
         sty = STYLES[style]
@@ -581,24 +635,24 @@ def render(track, style=None):
         shadow = Image.new("RGBA", pim.size, (0, 0, 0, 0))
         ds = ImageDraw.Draw(shadow); off = 5 * SS
         ds.text((mx + off, my + off), cfg["title_ko"], font=ko, fill=sty["outline"] + (190,))
-        ds.text((mx + 6 * SS + off, ly + off), cfg["title_latin"], font=la, fill=sty["outline"] + (170,))
+        ds.text((lx_center + off, ly + off), cfg["title_latin"], font=la, anchor="ma", fill=sty["outline"] + (170,))
         shadow = shadow.filter(ImageFilter.GaussianBlur(4 * SS))
         pim = Image.alpha_composite(pim, shadow)
         draw = ImageDraw.Draw(pim)
         text_outlined(draw, (mx, my), cfg["title_ko"], ko,
                       fill=sty["text"], stroke=sty["outline"], sw=4 * SS)   # 흰 글자+굵은 외곽
-        text_outlined(draw, (mx + 6 * SS, ly), cfg["title_latin"], la,
-                      fill=sty["text"], stroke=sty["outline"], sw=2 * SS)
+        text_outlined(draw, (lx_center, ly), cfg["title_latin"], la,
+                      fill=sty["text"], stroke=sty["outline"], sw=2 * SS, anchor="ma")
         rstroke = sty["outline"]
     else:
         draw = ImageDraw.Draw(pim)
         text_outlined(draw, (mx, my), cfg["title_ko"], ko,
                       fill=(40, 32, 44), stroke=(255, 252, 245), sw=2 * SS)
-        text_outlined(draw, (mx + 6 * SS, ly), cfg["title_latin"], la,
-                      fill=(70, 58, 64), stroke=(255, 250, 240), sw=1 * SS)
+        text_outlined(draw, (lx_center, ly), cfg["title_latin"], la,
+                      fill=(70, 58, 64), stroke=(255, 250, 240), sw=1 * SS, anchor="ma")
         rstroke = (60, 50, 70)
 
-    # 3) Reina 사인 (우상단)
+    # 3) Reina 사인 (우상단 — §3 불변)
     rf = font_reina(int(96 * SS))
     text_outlined(draw, (w - int(w * 0.065), int(h * 0.075)), "Reina", rf,
                   fill=(255, 255, 255), stroke=rstroke, sw=3 * SS, anchor="ra")
@@ -615,9 +669,11 @@ def render(track, style=None):
 
 if __name__ == "__main__":
     argv = sys.argv[1:]
-    style = None
+    style = None; bg = None
     if "--style" in argv:
         i = argv.index("--style"); style = argv[i + 1]; del argv[i:i + 2]
+    if "--bg" in argv:
+        i = argv.index("--bg"); bg = argv[i + 1]; del argv[i:i + 2]
     if not argv:
-        print("usage: python cover_render.py <track> [--style <name>]"); sys.exit(1)
-    render(argv[0], style)
+        print("usage: python cover_render.py <track> [--style <name>] [--bg <path>]"); sys.exit(1)
+    render(argv[0], style, bg)

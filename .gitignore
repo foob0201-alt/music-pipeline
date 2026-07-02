@@ -15,6 +15,9 @@ tracks/**/out/*
 !tracks/**/out/.cover_ok
 tracks/**/_demucs/
 tracks/**/manifest.json
+# 디버그 스크린샷(자막 검증용 등) — 곡 자산 아님
+verify_*.png
+tracks/**/verify_*.png
 
 # ===== 모델/캐시 =====
 *.pt
@@ -31,6 +34,8 @@ ffpass*.log
 venv/
 env/
 .DS_Store
+# 오프라인 설치용 whl 캐시(추적 제외)
+wheels/
 
 # 템플릿 폴더는 추적 유지(예외)
 !tracks/_template/
@@ -44,3 +49,5 @@ bomnal_audio.mp3
 
 # ===== OneDrive 동기화 충돌 사본 차단 =====
 CONTEXT (*).md
+
+_archive_*/

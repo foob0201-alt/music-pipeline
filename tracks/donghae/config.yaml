@@ -1,0 +1,15 @@
+# ============================================================
+# 곡별 override — "donghae"
+# 루트 config.yaml 기본값 위에 _deep_merge 로 덮어씀 (지정 항목만)
+# 자막 시작값(font 110 / dual_ko_margin 315 / dual_en_margin 201)은 루트 config 사용.
+# ============================================================
+
+track:
+  name: donghae
+  dir: tracks/donghae
+  # ---- 창작 메모(파이프라인 비참조) ----
+  place: "동해 · 올림픽대로/영동대로 (여름 로드트립)"
+
+meta:
+  title: "동해로"
+  artist: "영석고고"

@@ -1,0 +1,16 @@
+# ============================================================
+# 곡별 override — "아무말도"
+# 루트 config.yaml 기본값 위에 _deep_merge 로 덮어씀 (지정 항목만)
+# ============================================================
+
+track:
+  name: amumaldo
+  dir: tracks/amumaldo
+  # ---- 창작 메모(파이프라인 비참조, 기획·Suno 프롬프트용) ----
+  place: "동네 아파트 놀이터 벤치"
+  bpm: 108
+  genre: "Uptempo electro-R&B / future soul"
+
+meta:
+  title: "아무말도"
+  artist: "영석고고"

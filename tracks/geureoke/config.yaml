@@ -1,0 +1,27 @@
+# ============================================================
+# 곡별 override — "그렇게 지나간다"
+# 루트 config.yaml 기본값 위에 _deep_merge 로 덮어씀 (지정 항목만)
+# 자막/영상 표준(font 110 / dual 315·201 / 1440p / crf16)은 루트 config 사용.
+# ============================================================
+
+track:
+  name: geureoke
+  dir: tracks/geureoke
+  # ---- 창작 메모(파이프라인 비참조) ----
+  place: "없음 — 지명 은유 아님. 사계절 순환(봄→여름→가을→겨울)이 인내의 은유"
+  # 모티프: 수미상관 — 첫 봄 이미지를 말미에 되울려 원형으로 닫음
+
+meta:
+  title: "그렇게 지나간다"
+  artist: "Reina"
+  # ---- 창작 메모(파이프라인 비참조) ----
+  # title_en: "That's How It Passes"
+  # style(Suno Style 필드용): smooth urban R&B, ~90 BPM, G major, male vocal (20s),
+  #   subtle gospel touch: single passing C#dim7 in pre-chorus,
+  #   light choir pad only in final chorus
+  # cover: Soft Grain Analog · 따뜻한 그레인/크림 톤 ·
+  #   벚꽃→여름비→단풍→서리(계절 순환) · 첫 이미지(봄) 말미 되울림(수미상관)
+
+title_ko_scale: 104
+title_en_gap: 62
+title_en_scale: 145

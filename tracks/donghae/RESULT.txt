@@ -1,0 +1,41 @@
+================================================================
+ 동해로 (donghae) — dual 영상 렌더 검수팩 (게이트2)
+================================================================
+렌더 완료    : 2026-06-30 20:51:18 (KST)
+산출물       : tracks/donghae/out/donghae_dual.mp4
+파일 크기    : 94,310,429 bytes (94.3 MB)
+판정         : PASS (9/9 항목 충족)
+
+----------------------------------------------------------------
+ 파이프라인 단계 (전부 donghae 경로)
+----------------------------------------------------------------
+1) 커버 승인 : tracks/donghae/out/.cover_ok
+               sha256=9477ace86a58981f89e80d5a7f07d172ba315efb16f387c0fd3b5548cc47b8cf
+               (cover.jpg = Color-Field · fal 배경 bg_donghae.png · 센터 EN "To the Sea")
+2) 정렬     : scripts/align_mms.py donghae → out/align.json (MMS_FA uroman, 40줄) + _align_preview.lrc
+               드리프트 자동판정 PASS (첫 1.90s / 끝 205.98s / 음원 219.96s 내 / 단조 / 커버리지 93.6%)
+3) 자막     : align.json(40 KO) + lyrics_en(괄호포함 40) → out/donghae_dual.ass
+               KO 골드 카라오케 &H0000D7FF + EN 크림 &H00BED7DC · margin 315/201(gap114) · 2560x1440
+4) 인코딩   : ffmpeg libx264 CRF16 1-pass · Malgun Gothic 자막 번굽기 · +faststart
+
+----------------------------------------------------------------
+ ffprobe 9항목 검수팩 (원본 출력)
+----------------------------------------------------------------
+[1] codec_name   = h264                 ... PASS
+[2] profile      = High                 ... PASS
+[3] resolution   = 2560 x 1440 (1440p)  ... PASS
+[4] pix_fmt      = yuv420p              ... PASS
+[5] color        = bt709 primaries/transfer/space · range=tv ... PASS
+[6] r_frame_rate = 30/1 fps            ... PASS
+[7] duration     = 219.960000s  (audio.mp3 = 219.959979s 일치) ... PASS
+[8] audio        = aac (LC) · 48000Hz · 2ch · 385699 bps      ... PASS
+[9] faststart    = moov(36) < mdat(242984)  (moov@front)      ... PASS
+
+format: size=94310429  bit_rate=3430093
+
+[VIDEO raw]
+codec_name=h264 / profile=High / width=2560 / height=1440 / pix_fmt=yuv420p
+color_range=tv / color_space=bt709 / color_transfer=bt709 / color_primaries=bt709 / r_frame_rate=30/1
+[AUDIO raw]
+codec_name=aac / profile=LC / sample_rate=48000 / channels=2 / bit_rate=385699
+================================================================

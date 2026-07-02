@@ -30,7 +30,8 @@ align:
 subtitle:
   modes: [dual]                    # ko / en / dual (모드당 영상 1개)
   font: "Malgun Gothic"            # 설치 폰트 명시(과거 Noto는 미설치→폴백)
-  font_size: 110                   # KO 기준 확대(EN=110×0.82≈90)
+  font_size: 110                   # KO 기준(EN=110×0.82≈90). scale로 비례 확대됨
+  scale: 1.15                      # 자막 표준 스케일(2026-07-02 확정) — 폰트·마진·갭 비례
   primary_color: "&H00FFFFFF"      # KO 미부른 색(흰색)
   highlight_color: "&H0000D7FF"    # KO 부른 색(노랑) — \kf 채움
   en_color: "&H00BED7DC"           # EN 크림(색 분리)
