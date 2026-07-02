@@ -1,0 +1,95 @@
+{
+  "slug": "songdo",
+  "state": "QUEUED",
+  "error": null,
+  "history": [
+    {
+      "state": "FINGERPRINTED",
+      "ts": "2026-07-02T15:22:27"
+    },
+    {
+      "state": "COVER_CANDIDATES",
+      "ts": "2026-07-02T15:22:27"
+    },
+    {
+      "state": "COVER_OK",
+      "ts": "2026-07-02T15:22:27"
+    },
+    {
+      "state": "ALIGNED",
+      "ts": "2026-07-02T15:22:27"
+    },
+    {
+      "state": "SUBTITLED",
+      "ts": "2026-07-02T15:22:27"
+    },
+    {
+      "state": "ENCODED",
+      "ts": "2026-07-02T15:22:27"
+    },
+    {
+      "state": "VERIFIED",
+      "ts": "2026-07-02T15:22:32"
+    },
+    {
+      "state": "QUEUED",
+      "ts": "2026-07-02T15:22:32"
+    }
+  ],
+  "fingerprint": {
+    "md5": "03d6aaffba046ed27672c9fd601620cc",
+    "duration": 196.079979
+  },
+  "updated": "2026-07-02T15:22:32",
+  "verify": {
+    "ok": true,
+    "items": [
+      {
+        "name": "codec",
+        "value": "h264",
+        "pass": true
+      },
+      {
+        "name": "profile",
+        "value": "High",
+        "pass": true
+      },
+      {
+        "name": "resolution",
+        "value": "2560x1440",
+        "pass": true
+      },
+      {
+        "name": "pix_fmt",
+        "value": "yuv420p",
+        "pass": true
+      },
+      {
+        "name": "color_bt709",
+        "value": "bt709/tv",
+        "pass": true
+      },
+      {
+        "name": "fps",
+        "value": "30/1",
+        "pass": true
+      },
+      {
+        "name": "duration",
+        "value": "196.07~196.08",
+        "pass": true
+      },
+      {
+        "name": "audio_aac",
+        "value": "aac/48000",
+        "pass": true
+      },
+      {
+        "name": "faststart",
+        "value": "moov@36/mdat@215976",
+        "pass": true
+      }
+    ],
+    "reasons": []
+  }
+}

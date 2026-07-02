@@ -63,11 +63,35 @@ def _ensure_video(ctx: Context) -> None:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="HADES 음악 파이프라인")
+    ap.add_argument("slug", nargs="?", help="곡 slug (--auto 상태머신 대상)")
     ap.add_argument("--config", default="config.yaml")
     ap.add_argument("--track", help="곡별 config.yaml 경로(루트 위에 병합)")
     ap.add_argument("--steps", default="all",
                     help="all 또는 쉼표 조합: align,video,upload,threads")
+    ap.add_argument("--auto", action="store_true",
+                    help="상태머신으로 현재 상태에서 이어하기(cover→align→…→QUEUED 정지)")
+    ap.add_argument("--status", action="store_true", help="전 트랙 상태 테이블 출력")
     args = ap.parse_args()
+
+    # --status: 전 트랙 상태 테이블
+    if args.status:
+        import hades_state
+        print(hades_state.status_table())
+        return 0
+
+    # --auto: 상태머신 resume (단일 트랙)
+    if args.auto:
+        import hades_state
+        if not args.slug:
+            ap.error("--auto 는 slug 가 필요합니다: python pipeline.py <slug> --auto")
+        track_cfg = args.track or f"tracks/{args.slug}/config.yaml"
+        cfg = load_config(args.config, track_cfg)
+        # slug 를 경로의 단일 진실원으로 강제(곡별 config 없어도 tracks/<slug> 로 해석)
+        cfg.setdefault("track", {})
+        cfg["track"]["dir"] = f"tracks/{args.slug}"
+        cfg["track"]["name"] = args.slug
+        hades_state.run_auto(args.slug, cfg)
+        return 0
 
     cfg = load_config(args.config, args.track)
     ctx = Context.from_cfg(cfg)

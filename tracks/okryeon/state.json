@@ -1,0 +1,24 @@
+{
+  "slug": "okryeon",
+  "state": "COVER_CANDIDATES",
+  "error": null,
+  "history": [
+    {
+      "state": "NEW",
+      "ts": "2026-07-02T15:22:35"
+    },
+    {
+      "state": "FINGERPRINTED",
+      "ts": "2026-07-02T15:23:44"
+    },
+    {
+      "state": "COVER_CANDIDATES",
+      "ts": "2026-07-02T15:23:44"
+    }
+  ],
+  "updated": "2026-07-02T15:23:44",
+  "fingerprint": {
+    "md5": "15b3405efb9decf9bbb76472641e4b9a",
+    "duration": 193.119979
+  }
+}
