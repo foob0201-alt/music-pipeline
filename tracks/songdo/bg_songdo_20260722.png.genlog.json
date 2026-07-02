@@ -1,0 +1,17 @@
+{
+  "model": "fal-ai/flux-2-pro",
+  "prompt": "Cinematic analog film photograph of the Songdo International City skyline in Incheon, Korea by the open sea at golden hour. Tall modern glass skyscrapers along the waterfront, wide sea with wind-rippled waves and a fresh breeze, drifting light clouds, bright airy luminous sky, warm vivid saturated yet natural colors, breezy windswept uplifting atmosphere, fine 35mm film grain, generous bright empty sky across the top for title text, no people, no text, no lettering, cinematic 16:9.",
+  "seed": 20260722,
+  "seed_requested": 20260722,
+  "requested": {
+    "width": 2560,
+    "height": 1440
+  },
+  "actual": {
+    "width": 2560,
+    "height": 1440
+  },
+  "output": "bg_songdo_20260722.png",
+  "bytes": 7669082,
+  "created": "2026-07-02T14:02:26"
+}

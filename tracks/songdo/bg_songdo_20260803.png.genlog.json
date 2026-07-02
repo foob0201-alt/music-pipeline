@@ -1,0 +1,17 @@
+{
+  "model": "fal-ai/flux-2-pro",
+  "prompt": "Bright clear daytime photograph of the Songdo International City skyline in Incheon, Korea by the open sea under a vivid blue midday sky. Tall modern glass skyscrapers along the waterfront, wide sparkling blue sea with wind-rippled waves and a fresh breeze, crisp white clouds, brilliant sunny daylight, vivid saturated blue and clean fresh colors, breezy uplifting airy atmosphere, fine 35mm film grain, generous bright empty blue sky across the top for title text, no golden hour, no sunset, no people, no text, no lettering, cinematic 16:9.",
+  "seed": 20260803,
+  "seed_requested": 20260803,
+  "requested": {
+    "width": 2560,
+    "height": 1440
+  },
+  "actual": {
+    "width": 2560,
+    "height": 1440
+  },
+  "output": "bg_songdo_20260803.png",
+  "bytes": 7436469,
+  "created": "2026-07-02T14:12:25"
+}

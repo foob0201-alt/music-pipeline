@@ -1,0 +1,17 @@
+{
+  "model": "fal-ai/flux-2-pro",
+  "prompt": "Warm romantic analog film photograph of Songdo Yuwonji seaside neighborhood in Incheon, Korea at radiant golden hour, glowing with the tender feeling of falling in love. Sparkling sunlit water with soft gentle light flares, dreamy luminous peach, coral and gold sky touched with soft sky-blue, warm glittering bokeh as if the whole familiar town is seen anew through love, cheerful vivid saturated yet soft romantic colors, bright airy fresh uplifting atmosphere, fine 35mm film grain, generous bright empty sky across the top for title text, no people, no text, no lettering, cinematic 16:9.",
+  "seed": 20260714,
+  "seed_requested": 20260714,
+  "requested": {
+    "width": 2560,
+    "height": 1440
+  },
+  "actual": {
+    "width": 2560,
+    "height": 1440
+  },
+  "output": "bg_songdo.png",
+  "bytes": 7465453,
+  "created": "2026-07-02T13:50:35"
+}
