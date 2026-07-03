@@ -69,6 +69,14 @@ TRACKS = {
         "title_latin": "Okryeon-dong",  # KO 아래 EN 부제
         "motif": None,                  # 사진 배경(옥련동 대낮 블루·바다 향한 길)이 색면 그 자체
     },
+    "radio": {                          # 인스트루멘털 BGM — BGM 모션 표준 v1 (VISUAL §7)
+        "style": "bgm_notes",
+        "title_ko": "새벽 라디오",
+        "title_latin": "Early Morning Radio",
+        "motif": None,                  # 음표 선화 모티프는 render_bgm_notes 가 직접 합성
+        "note_source": (0.37, 0.33),    # 음표 발원점(seed05 라디오/안테나 상단, 정규화)
+        "note_count": 3,                # 정적 커버 음표 수(2~3, §7.1)
+    },
 }
 
 # ── 스타일 프리셋 (팔레트 토큰) ───────────────────────────────────────────
@@ -106,6 +114,10 @@ STYLES = {
     "color_field": {
         "text":    (255, 255, 255),   # 흰 제목
         "outline": (18, 26, 38),      # 딥 외곽(차콜-네이비) — 밝은 사진 위 또렷하게
+    },
+    "bgm_notes": {                    # 인스트루멘털(사진 위) — color_field 와 동일 가독 처리
+        "text":    (255, 255, 255),
+        "outline": (18, 26, 38),
     },
 }
 
@@ -273,6 +285,43 @@ def motif_playground(size):
     return _glow_lines(size, draw, color=(247, 185, 92), width=6*SS, glow=9*SS)
 
 MOTIFS = {"playground": motif_playground}
+
+# ── 모티프: 음표 선화 (BGM 모션 표준 v1 · 정적 레이어 — VISUAL §7.1) ────────
+def _draw_note(d, cx, cy, s, lw, flag=True):
+    """8분음표 선화(윤곽선만). 머리=타원 아웃라인, 기둥=선, 꼬리=arc. 채움 없음."""
+    W = (255, 255, 255, 255)
+    hrx, hry = 0.62 * s, 0.46 * s
+    d.ellipse([cx - hrx, cy - hry, cx + hrx, cy + hry], outline=W, width=max(2, int(lw * 0.8)))
+    stem_x = cx + hrx * 0.86
+    stem_top = cy - 2.9 * s
+    d.line([(stem_x, cy - hry * 0.15), (stem_x, stem_top)], fill=W, width=lw)
+    if flag:                                            # 꼬리(우하향 곡선)
+        d.arc([stem_x - 0.10 * s, stem_top, stem_x + 1.25 * s, stem_top + 1.5 * s],
+              start=-95, end=35, fill=W, width=lw)
+
+
+def motif_radio(size, source=(0.37, 0.33), n=3, seed=13):
+    """라디오(안테나)에서 피어오르는 선화 음표 n개(2~3). 흰~하늘빛·윤곽선만·
+    위로 갈수록 축소·상단 제목영역 회피, opacity 0.30~0.45(§7.1)."""
+    w, h = size
+    sx, sy = source[0] * w, source[1] * h
+    top_limit = h * 0.16                                # 제목 영역 위 한계(회피)
+    notes = []
+    for i in range(n):
+        t = i / max(1, n - 1)                           # 0(아래)→1(위)
+        ny = sy - t * (sy - top_limit)
+        nx = sx + (0.06 + 0.10 * t) * w                 # 위로 갈수록 우측 드리프트(좌상단 제목 회피)
+        scale = (1.0 - 0.42 * t) * (h * 0.060)          # 위로 갈수록 축소
+        notes.append((nx, ny, scale, i % 2 == 0))
+
+    def draw(d, lw):
+        for (nx, ny, s, flag) in notes:
+            _draw_note(d, nx, ny, s, lw, flag=flag)
+
+    layer = _glow_lines(size, draw, color=(226, 240, 255), width=4 * SS, glow=5 * SS)
+    arr = np.array(layer).astype(np.float32)
+    arr[:, :, 3] *= 0.42                                # opacity 상한 근처(0.30~0.45)
+    return Image.fromarray(arr.astype(np.uint8))
 
 # ── 텍스트(외곽선) ────────────────────────────────────────────────────────
 def text_outlined(draw, xy, s, font, fill, stroke, sw, anchor=None):
@@ -583,6 +632,23 @@ def render_color_field(cfg, w, h, bg=None):
     img = np.clip(img, 0, 255).astype(np.uint8)
     return Image.fromarray(img, "RGB").convert("RGBA")
 
+def render_bgm_notes(cfg, w, h, bg=None, no_notes=False):
+    """인스트루멘털 BGM 커버: 사진 배경 + 빛가루(상승 입자) + 음표 선화 모티프.
+    (BGM 모션 표준 v1 정적 레이어 — VISUAL §7.1) 시그니처는 render()에서.
+    no_notes=True: 음표·빛가루 생략(영상 베이스용 — 모션 루프가 음표·파티클을 담당해 중복 방지)."""
+    if bg:
+        img = _bg_base(bg, w, h)
+    else:
+        img = dawn_gradient(w, h, [(150, 200, 235), (120, 180, 225)])   # bg 없을 때 새벽블루 폴백
+    img = np.clip(img, 0, 255).astype(np.uint8)
+    pim = Image.fromarray(img, "RGB").convert("RGBA")
+    if no_notes:
+        return pim                                                      # 영상 베이스: 사진+시그니처만
+    pim = add_particles(pim)                                             # 빛가루(상승 입자, §7.2 공존 기반)
+    src = cfg.get("note_source", (0.37, 0.33))
+    pim = Image.alpha_composite(pim, motif_radio((w, h), source=src, n=int(cfg.get("note_count", 3))))
+    return pim
+
 # ── 곡별 config.yaml 커버 오버라이드 (선택) ───────────────────────────────
 def _track_overrides(track):
     """곡별 config.yaml 의 커버 미세조정 키만 추출(없으면 빈 dict).
@@ -597,7 +663,7 @@ def _track_overrides(track):
         return {}
 
 # ── 메인 렌더 ─────────────────────────────────────────────────────────────
-def render(track, style=None, bg=None):
+def render(track, style=None, bg=None, no_notes=False, out_name="cover.jpg"):
     cfg = TRACKS.get(track)
     if cfg is None:
         raise SystemExit(f"[ERR] TRACKS에 '{track}' 정의 없음 — cover_render.py 레지스트리에 추가 필요")
@@ -615,6 +681,8 @@ def render(track, style=None, bg=None):
         pim = render_mirror_afterimage(cfg, w, h, bg=bg); legible = "bright_dark"
     elif style == "color_field":
         pim = render_color_field(cfg, w, h, bg=bg); legible = "photo"
+    elif style == "bgm_notes":
+        pim = render_bgm_notes(cfg, w, h, bg=bg, no_notes=no_notes); legible = "photo"
     else:
         pim = render_luminous_dawn(cfg, w, h, bg=bg);   legible = False
 
@@ -674,18 +742,25 @@ def render(track, style=None, bg=None):
     final = Image.fromarray(dither(np.array(final)))
     outdir = ROOT / "tracks" / track
     outdir.mkdir(parents=True, exist_ok=True)
-    out = outdir / "cover.jpg"
+    out = outdir / out_name
     final.save(out, "JPEG", quality=95, subsampling=0)
-    print(f"[OK] {out}  ({W}x{H}, style={style})")
+    print(f"[OK] {out}  ({W}x{H}, style={style}{', no-notes' if no_notes else ''})")
     return out
 
 if __name__ == "__main__":
     argv = sys.argv[1:]
-    style = None; bg = None
+    style = None; bg = None; no_notes = False; out_name = "cover.jpg"
     if "--style" in argv:
         i = argv.index("--style"); style = argv[i + 1]; del argv[i:i + 2]
     if "--bg" in argv:
         i = argv.index("--bg"); bg = argv[i + 1]; del argv[i:i + 2]
+    if "--out" in argv:
+        i = argv.index("--out"); out_name = argv[i + 1]; del argv[i:i + 2]
+    if "--no-notes" in argv:
+        argv.remove("--no-notes"); no_notes = True
+        if out_name == "cover.jpg":
+            out_name = "cover_base.jpg"                 # 영상 베이스 기본 파일명(썸네일 cover.jpg 보존)
     if not argv:
-        print("usage: python cover_render.py <track> [--style <name>] [--bg <path>]"); sys.exit(1)
-    render(argv[0], style, bg)
+        print("usage: python cover_render.py <track> [--style <name>] [--bg <path>] "
+              "[--no-notes] [--out <name.jpg>]"); sys.exit(1)
+    render(argv[0], style, bg, no_notes=no_notes, out_name=out_name)
