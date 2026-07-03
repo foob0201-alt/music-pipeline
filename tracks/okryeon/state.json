@@ -1,6 +1,6 @@
 {
   "slug": "okryeon",
-  "state": "COVER_CANDIDATES",
+  "state": "QUEUED",
   "error": null,
   "history": [
     {
@@ -14,11 +14,86 @@
     {
       "state": "COVER_CANDIDATES",
       "ts": "2026-07-02T15:23:44"
+    },
+    {
+      "state": "COVER_OK",
+      "ts": "2026-07-03T11:06:07"
+    },
+    {
+      "state": "ALIGNED",
+      "ts": "2026-07-03T11:26:45"
+    },
+    {
+      "state": "SUBTITLED",
+      "ts": "2026-07-03T11:26:45"
+    },
+    {
+      "state": "ENCODED",
+      "ts": "2026-07-03T11:36:54"
+    },
+    {
+      "state": "VERIFIED",
+      "ts": "2026-07-03T11:37:00"
+    },
+    {
+      "state": "QUEUED",
+      "ts": "2026-07-03T11:37:00"
     }
   ],
-  "updated": "2026-07-02T15:23:44",
+  "updated": "2026-07-03T11:37:00",
   "fingerprint": {
     "md5": "15b3405efb9decf9bbb76472641e4b9a",
     "duration": 193.119979
+  },
+  "verify": {
+    "ok": true,
+    "items": [
+      {
+        "name": "codec",
+        "value": "h264",
+        "pass": true
+      },
+      {
+        "name": "profile",
+        "value": "High",
+        "pass": true
+      },
+      {
+        "name": "resolution",
+        "value": "2560x1440",
+        "pass": true
+      },
+      {
+        "name": "pix_fmt",
+        "value": "yuv420p",
+        "pass": true
+      },
+      {
+        "name": "color_bt709",
+        "value": "bt709/tv",
+        "pass": true
+      },
+      {
+        "name": "fps",
+        "value": "30/1",
+        "pass": true
+      },
+      {
+        "name": "duration",
+        "value": "193.12~193.12",
+        "pass": true
+      },
+      {
+        "name": "audio_aac",
+        "value": "aac/48000",
+        "pass": true
+      },
+      {
+        "name": "faststart",
+        "value": "moov@36/mdat@213704",
+        "pass": true
+      }
+    ],
+    "reasons": []
   }
 }

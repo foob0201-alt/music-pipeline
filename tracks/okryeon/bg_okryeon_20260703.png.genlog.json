@@ -1,0 +1,21 @@
+{
+  "model": "fal-ai/flux-2-pro/edit",
+  "prompt": "Use @image1 and @image2 ONLY as strict style references for color grade, brightness, saturation and 35mm film-grain look — do NOT copy their buildings, layout or composition. Generate a completely new scene. Bright clear high-key daytime photograph, a bright cheerful neighborhood road in Okryeon-dong, Incheon stretching forward toward a distant sparkling blue sea, small colorful houses and friendly streetlights lining the path, the hopeful feeling of walking forward together again, under a clean vivid blue sky. Brilliant azure and turquoise tones, crisp sharp daylight, sparkling clear water, crisp white clouds, wide open airy composition, vivid saturated fresh colors, sharp clean focus, generous bright empty blue sky across the top for title text, cinematic 16:9. Avoid: yellow tint, sepia, golden hour, sunset, orange or amber cast, warm color wash, film wash, film grain, haze, soft blur, muted or grey tones, gloom, dark or moody tones, night, low light, washed-out desaturation, people, text, lettering, watermark, logo.",
+  "seed": 20260703,
+  "seed_requested": 20260703,
+  "requested": {
+    "width": 2560,
+    "height": 1440
+  },
+  "actual": {
+    "width": 2560,
+    "height": 1440
+  },
+  "reference_images": [
+    "C:\\Users\\user\\OneDrive\\바탕 화면\\1_진행중\\Claude_AI작업\\음악생성\\music-pipeline\\music-pipeline\\style_ref\\donghae.png",
+    "C:\\Users\\user\\OneDrive\\바탕 화면\\1_진행중\\Claude_AI작업\\음악생성\\music-pipeline\\music-pipeline\\style_ref\\songdo_bluehour.png"
+  ],
+  "output": "bg_okryeon_20260703.png",
+  "bytes": 6503867,
+  "created": "2026-07-03T10:21:24"
+}
