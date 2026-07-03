@@ -51,3 +51,7 @@ bomnal_audio.mp3
 CONTEXT (*).md
 
 _archive_*/
+# 구 템플릿 후보 아카이브(재생성 가능·대용량) — 추적 제외
+tracks/**/_stale_*/
+# 게이트1 검토 스테이징(대용량 후보 PNG, out/ 처럼 런타임 산출) — 추적 제외
+gate/

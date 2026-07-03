@@ -1,0 +1,22 @@
+{
+  "slug": "radio",
+  "state": "COVER_CANDIDATES",
+  "error": null,
+  "history": [
+    {
+      "state": "FINGERPRINTED",
+      "ts": "2026-07-03T10:42:35"
+    },
+    {
+      "state": "COVER_CANDIDATES",
+      "ts": "2026-07-03T10:42:35"
+    }
+  ],
+  "fingerprint": {
+    "md5": "801dc91a3d6f132b5b503a617c2483d3",
+    "duration": 194.399979
+  },
+  "updated": "2026-07-03T10:42:35",
+  "hold_reason": "BGM 모션 레이어(파티클 드리프트) 표준 확정 후 재렌더 발행 예정 — VISUAL §7 BGM 모션 표준 v1",
+  "publish_hold": true
+}

@@ -10,7 +10,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Dict
 
-from hades_util import Context, Manifest, get_logger, harden_secret, retry
+from hades_util import (Context, Manifest, get_logger, harden_secret, retry,
+                        record_upload_spotcheck)
 
 log = get_logger("youtube")
 
@@ -96,5 +97,10 @@ def run(ctx: Context) -> Context:
         urls[ver] = url
         mani.mark(key, url)
         log.info("업로드 완료 %s → %s", ver, url)
+        # 무인 게이트1 사후 표본검사: 5건당 1건 spot_check 플래그(중앙 원장 + 매니페스트)
+        if record_upload_spotcheck(ctx.track_dir.name, ver, url):
+            mani.mark(f"spotcheck:{ctx.track_dir.name}:{ver}", True)
+            log.warning("[spot-check] 사후 확인 대상(업로드 5건당 1건): %s %s — 사람 육안 점검 요망",
+                        ver, url)
     ctx.youtube_urls = urls
     return ctx

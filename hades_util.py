@@ -193,6 +193,29 @@ def approve_cover(slug: str) -> Path:
     return ok
 
 
+def record_upload_spotcheck(track: str, ver: str, url: str, *,
+                            every: int = 5, ledger: str = "upload_ledger.json") -> bool:
+    """전역 업로드 원장에 기록하고 every건당 1건 '사후 확인(spot_check)' 플래그를 세운다.
+    무인 게이트1 도입에 따른 사후 표본검사(HADES). 반환: 이 업로드가 표본이면 True."""
+    p = Path(ledger)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    data = {"count": 0, "entries": []}
+    if p.exists():
+        try:
+            data = json.loads(p.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            pass
+    data["count"] = int(data.get("count", 0)) + 1
+    flag = (data["count"] % every == 0)
+    data.setdefault("entries", []).append({
+        "n": data["count"], "track": track, "ver": ver, "url": url,
+        "spot_check": flag, "ts": time.strftime("%Y-%m-%dT%H:%M:%S")})
+    tmp = p.with_suffix(".tmp")
+    tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    os.replace(tmp, p)
+    return flag
+
+
 def cover_gate_ok(slug: str) -> bool:
     """.cover_ok 가 존재하고 현재 cover.jpg 해시와 일치해야 True (둘 다 충족)."""
     cover, ok = _cover_paths(slug)

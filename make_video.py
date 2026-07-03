@@ -34,7 +34,8 @@ def _esc_sub(path: Path) -> str:
     return s
 
 
-def _filter(cfg: dict, ass: Path, frames: int) -> str:
+def _filter(cfg: dict, ass: Path | None, frames: int) -> str:
+    """Ken Burns + BT.709 태깅 필터. ass=None 이면 자막 굽기 생략(인스트루멘털)."""
     v = cfg.get("video", {})
     w, h = v.get("resolution", [2560, 1440])
     fps = v.get("fps", 60)
@@ -43,19 +44,21 @@ def _filter(cfg: dict, ass: Path, frames: int) -> str:
     # 프레임당 증가량으로 곡 전체에 걸쳐 zmax까지 천천히 줌인
     zstep = max(0.00005, (zmax - 1.0) / max(1, frames))
     # 네이티브 해상도 줌(슈퍼샘플 5120x2880 미적용 — 표준 지시).
-    return (
+    base = (
         f"[0:v]scale={w}:{h}:flags=lanczos,"
         f"zoompan=z='min(zoom+{zstep:.6f}\\,{zmax})':d={frames}"
         f":x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s={w}x{h}:fps={fps},"
         # JPEG 소스 풀레인지 → BT.709 리미티드(tv)로 변환 후 색 파라미터 태깅(§4.1)
         f"scale={w}:{h}:in_range=full:out_range=tv,"
         f"format=yuv420p,"
-        f"setparams=range=tv:color_primaries=bt709:color_trc=bt709:colorspace=bt709,"
-        f"subtitles=filename='{_esc_sub(ass)}'[v]"
+        f"setparams=range=tv:color_primaries=bt709:color_trc=bt709:colorspace=bt709"
     )
+    if ass is None:
+        return base + "[v]"
+    return base + f",subtitles=filename='{_esc_sub(ass)}'[v]"
 
 
-def _encode(ctx: Context, ass: Path, out: Path) -> Path:
+def _encode(ctx: Context, ass: Path | None, out: Path) -> Path:
     cfg = ctx.cfg
     v = cfg.get("video", {})
     enc = v.get("encode", {})
@@ -126,11 +129,16 @@ def _encode(ctx: Context, ass: Path, out: Path) -> Path:
 
 
 def run(ctx: Context) -> Context:
-    if not ctx.ass_map:
-        raise RuntimeError("ass_map 없음 — align 단계 선행 필요")
     # 코드 1차 커버 게이트: 승인(.cover_ok)과 현재 cover.jpg 해시가 일치해야만 인코딩 진행
     if not cover_gate_ok(ctx.track_dir.name):
         raise SystemExit("커버 게이트 미통과 - 인코딩 중단")
+    # 인스트루멘털: 자막 없이 커버+오디오 단일본({name}_bgm.mp4). align/ass 불요.
+    if ctx.cfg.get("mode") == "instrumental":
+        out = ctx.out_dir / f"{ctx.track_dir.name}_bgm.mp4"
+        ctx.video_map = {"bgm": _encode(ctx, None, out)}
+        return ctx
+    if not ctx.ass_map:
+        raise RuntimeError("ass_map 없음 — align 단계 선행 필요")
     vmap: Dict[str, Path] = {}
     for mode, ass in ctx.ass_map.items():
         out = ctx.out_dir / f"{ctx.track_dir.name}_{mode}.mp4"

@@ -1,0 +1,31 @@
+# ============================================================
+# 곡별 override — "새벽 라디오" (인스트루멘털 BGM)
+# 루트 config.yaml 기본값 위에 _deep_merge 로 덮어씀 (지정 항목만)
+# 영상/인코딩 표준(1440p · CRF16 · BT.709)은 루트 config 상속. 자막 없음.
+# ============================================================
+
+track:
+  name: radio
+  dir: tracks/radio
+  # ---- 창작 메모(파이프라인 비참조) ----
+  place: "새벽 침실 창가 — 창턱의 작은 레트로 라디오"
+  # 모티프: 푸른 새벽빛 커튼·창밖 밝아오는 하늘. 가사 없는 BGM(로파이/앰비언트).
+
+# 인스트루멘털: 가사·정렬·자막 전 단계 건너뛰고 커버+오디오만 인코딩(_bgm.mp4).
+mode: instrumental
+
+# 발행 보류: --auto 는 VERIFIED 까지만(QUEUED 미투입). 파이프 검증용.
+# BGM 모션 레이어(파티클 드리프트) 표준 확정·빌드 후 재렌더하여 발행 예정.
+publish_hold: true
+hold_reason: "BGM 모션 레이어(파티클 드리프트) 표준 확정 후 재렌더 발행 예정"
+
+# 무인 게이트1 제외: 커버가 모션 표준 v1(음표 파티클) 빌드로 재렌더될 예정이라
+# 지금은 자동 승인하지 않는다(수동 게이트 유지). 모션 빌드 후 재승인.
+cover_gate_auto: false
+
+meta:
+  title: "새벽 라디오"
+  artist: "Reina"
+  # ---- 창작 메모(파이프라인 비참조) ----
+  # title_en: "Early Morning Radio"
+  # style(Suno Style 필드용): dreamy lo-fi ambient morning radio, no vocals
