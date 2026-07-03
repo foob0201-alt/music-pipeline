@@ -16,6 +16,7 @@
 | P1 | 알려진 가사 직접 CTC forced-align(MMS `scripts/align_mms.py`) | ✅ 완료·실음원 검증 |
 | P2 | AI 공시 플래그 · Drive 자동 백업 | ⬜ 첫 릴리스 후 |
 | P3 | Mel-RoFormer · AV1 · Remotion · Threads 네이티브 | ⬜ 천장(보류) |
+| P4 | 인스트루멘털 멀티씬 크로스페이드(BGM 커버 여러 장 전환) | ⬜ 후순위(백로그) — 현행 instrumental 은 단일 커버 Ken Burns |
 
 ## 곡 완주 순서 (일반 · `<곡>`=slug)
 
