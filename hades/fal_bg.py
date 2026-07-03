@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""hades/fal_bg.py — fal.ai 커버 배경 생성 (v2: 하우스 스타일 자동화).
+"""hades/fal_bg.py — fal.ai 커버 배경 생성 (v3: 프롬프트 3층 분리).
 
-핵심(v2):
-- 하우스 스타일 템플릿(확정 '대낮 블루' 골격) + 곡별 --scene "<한 줄>" 삽입. 네거티브 고정.
-- style_ref/ 의 확정 배경을 fal FLUX.2 [pro] edit 엔드포인트(image_urls, 최대 9장)에
-  멀티레퍼런스로 자동 첨부(색감/광량/필름그레인 일관성). --no-ref 로 해제.
+핵심(v3):
+- 프롬프트 3층 = SCENE(가사 앵커·최전방) / CAMERA(구도) / GRADE(하우스 그레이드·후방 고정).
+  파랑은 GRADE(cool blue-leaning)에서 나온다 — 하늘/물/바다 오브제는 '가사에 실재할 때만' SCENE 투입.
+  야간 정서 곡은 --grade bright_nocturne(딥블랙 금지). SCENE 앵커 가사 줄번호는 genlog 기록.
+- 네거티브 프롬프트 제거(FLUX.2 Pro 미지원) → 전면 긍정 기술로 대체.
+- style_ref/ 확정 배경을 FLUX.2 [pro] edit 엔드포인트(image_urls, 최대 9장)에 멀티레퍼런스로
+  자동 첨부(색감/광량/채도 일관성, 구도·건물 복제 금지). --no-ref 로 해제.
 - tone_check(): 평균 밝기·채도·황색끼(R-B)·회색끼 임계 검사. 불합격 시 seed 변경 재생성.
 - generate_candidates(): 합격 N장 확보(최대 재시도 제한). 후보 배경 반환.
 
@@ -13,9 +16,10 @@
 - FAL_KEY 는 os.environ 에서만 읽는다. 없으면 즉시 RuntimeError (레포 기록·하드코딩 절대 금지).
 
 CLI:
-  # 템플릿 모드(권장): 곡별 장면 한 줄만
-  python hades/fal_bg.py <slug> --scene "<한 줄 장면>" [--candidates 3] [--seed N] [--no-ref]
-  # 단일 생성(레거시): 전체 프롬프트 직접
+  # 3층 모드(권장): 곡별 장면 한 줄 + (선택)그레이드·앵커
+  python hades/fal_bg.py <slug> --scene "<가사 유래 장면>" [--grade day|bright_nocturne]
+      [--anchor L12,L14] [--candidates 3] [--seed N] [--no-ref]
+  # 단일 생성(레거시): 전체 프롬프트 직접(3층 빌더 우회)
   python hades/fal_bg.py --prompt "<full prompt>" --out <path> [--seed N] [--size 2560x1440]
 """
 from __future__ import annotations
@@ -29,38 +33,62 @@ from pathlib import Path
 
 import httpx
 
+# Windows cp949 콘솔에서도 이모지(✅/⚠️)·한글 출력이 깨지거나 UnicodeEncodeError 로
+# 프로세스를 죽이지 않도록 표준출력/에러를 UTF-8(대체문자)로 강제. (hades_util·훅과 동일 패턴)
+for _s in (sys.stdout, sys.stderr):
+    try:
+        _s.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:  # noqa: BLE001
+        pass
+
 MODEL_TXT2IMG = "fal-ai/flux-2-pro"        # 텍스트→이미지 (레퍼런스 없음)
 MODEL_EDIT = "fal-ai/flux-2-pro/edit"      # 멀티레퍼런스 (image_urls, 최대 9장)
 REPO = Path(__file__).resolve().parent.parent
 STYLE_REF_DIR = REPO / "style_ref"
 
 # ─────────────────────────────────────────────────────────────────────────
-# 하우스 스타일 템플릿 — 오늘 songdo 최종(대낮 블루) 확정 골격. {scene} 만 곡별로 교체.
+# 프롬프트 3층 (v3) — SCENE / CAMERA / GRADE  (VISUAL.md 커버 원칙 v4)
+#   L1 SCENE : --scene(가사 유래 장면 앵커, 최전방). 하늘/물/바다 등 환경 오브제는
+#              '가사에 실재할 때만' SCENE 안에 넣는다(빌더는 강제하지 않음).
+#   L2 CAMERA: 구도·매체(고정). wide shot·airy·제목 여백·cinematic 16:9.
+#   L3 GRADE : 색·노출 그레이드(하우스 불변, 후방 고정). cool blue-leaning.
+#              야간 정서 곡은 grade="bright_nocturne"(딥블랙 금지, 빛 살림).
+# 네거티브 프롬프트는 FLUX.2 Pro 미지원 → 전면 '긍정 기술'로 대체(회색/세피아 금지
+# 취지는 vivid clean saturation·transparent air 등 긍정문으로 승계).
 # ─────────────────────────────────────────────────────────────────────────
-HOUSE_STYLE = (
-    "Bright clear high-key daytime photograph, {scene}, under a clean vivid blue sky. "
-    "Brilliant azure and turquoise tones, crisp sharp daylight, sparkling clear water, "
-    "crisp white clouds, wide open airy composition, vivid saturated fresh colors, "
-    "sharp clean focus, generous bright empty blue sky across the top for title text, "
-    "cinematic 16:9."
+CAMERA = (
+    "Wide-shot photograph, wide open airy composition, "
+    "generous bright empty space across the top for title text, cinematic 16:9."
 )
-# 고정 네거티브(하우스 규약, CONTEXT §1 확정) — flux-2-pro 별도 negative 필드 없어 프롬프트에 명시
-HOUSE_NEGATIVE = (
-    " Avoid: yellow tint, sepia, golden hour, sunset, orange or amber cast, warm color wash, "
-    "film wash, film grain, haze, soft blur, muted or grey tones, gloom, dark or moody tones, "
-    "night, low light, washed-out desaturation, people, text, lettering, watermark, logo."
-)
-# 레퍼런스 사용 시 스타일-온리 지시(레퍼런스의 구도/건물 복제 금지)
+
+GRADE = {
+    # 기본(대낮): 하이키·쿨 블루 그레이드. 파랑은 GRADE에서 나온다(하늘/바다 강제 아님).
+    "day": (
+        "Crisp high-key exposure, cool blue-leaning color grade, "
+        "vivid clean saturation, clear transparent air."
+    ),
+    # 야간 정서: 밝은 야경(하이키 나이트) — 딥블랙·침울 금지, 빛을 살아있게.
+    "bright_nocturne": (
+        "Crisp high-key nocturne exposure, luminous cool blue-leaning color grade, "
+        "vivid clean saturation, clear transparent air, glowing lights kept bright "
+        "with no deep black and no gloom."
+    ),
+}
+GRADES = tuple(GRADE)
+
+# 레퍼런스 사용 시 스타일-온리 지시(레퍼런스의 구도/건물 복제 금지).
 REF_PREFIX = (
-    "Use {refs} ONLY as strict style references for color grade, brightness, "
-    "saturation and 35mm film-grain look — do NOT copy their buildings, layout or "
-    "composition. Generate a completely new scene. "
+    "Use {refs} ONLY as strict style references for color grade, exposure and "
+    "saturation — do NOT copy their buildings, layout or composition. "
+    "Generate a completely new scene. "
 )
 
 
-def build_house_prompt(scene: str) -> str:
-    """곡별 한 줄 장면 → 하우스 스타일 완성 프롬프트(+고정 네거티브)."""
-    return HOUSE_STYLE.format(scene=scene.strip()) + HOUSE_NEGATIVE
+def build_prompt(scene: str, *, grade: str = "day") -> str:
+    """3층 조립: SCENE(가사 앵커) → CAMERA(구도) → GRADE(하우스 그레이드).
+    scene 에는 가사에 실재하는 오브제만 담는다(하늘/물/바다 강제 없음)."""
+    g = GRADE.get(grade) or GRADE["day"]
+    return f"{scene.strip()}. {CAMERA} {g}"
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -161,9 +189,11 @@ def _write_genlog(out: Path, entry: dict) -> Path:
 def generate_bg(prompt: str, out_path: str | Path,
                 width: int = 2560, height: int = 1440,
                 seed: int | None = None,
-                reference_images: list[str | Path] | None = None) -> dict:
+                reference_images: list[str | Path] | None = None,
+                scene_anchor: str | None = None) -> dict:
     """flux-2-pro 로 배경 1장 생성 → out_path(PNG) 저장.
     reference_images 가 있으면 edit 엔드포인트(image_urls)로 멀티레퍼런스 첨부.
+    scene_anchor: SCENE 앵커 근거 가사 줄번호(예: 'L12,L14') — genlog 기록용.
     {path,bytes,width,height,seed,requested,genlog,model,refs} 반환."""
     _require_key()
     import fal_client  # 키 검증 후 지연 임포트
@@ -213,6 +243,7 @@ def generate_bg(prompt: str, out_path: str | Path,
         "prompt": arguments["prompt"],
         "seed": used_seed,
         "seed_requested": seed,
+        "scene_anchor": scene_anchor,          # SCENE 앵커 근거 가사 줄번호(v3)
         "requested": {"width": int(width), "height": int(height)},
         "actual": {"width": aw, "height": ah},
         "reference_images": [str(r) for r in (reference_images or [])],
@@ -229,6 +260,7 @@ def generate_bg(prompt: str, out_path: str | Path,
 def generate_candidates(prompt: str, slug: str, *, width: int = 2560, height: int = 1440,
                         base_seed: int | None = None, target: int = 3, max_retries: int = 5,
                         reference_images: list | None = None,
+                        scene_anchor: str | None = None,
                         out_dir: Path | None = None) -> dict:
     """톤 합격 후보 target 장 확보. 불합격 시 seed 변경 재생성(최대 max_retries 추가 시도).
     {passed:[{path,seed,metrics}], attempts:[...], target, secured} 반환."""
@@ -244,7 +276,8 @@ def generate_candidates(prompt: str, slug: str, *, width: int = 2560, height: in
         i += 1
         out = out_dir / f"bg_{slug}_{seed}.png"
         try:
-            info = generate_bg(prompt, out, width, height, seed, reference_images)
+            info = generate_bg(prompt, out, width, height, seed, reference_images,
+                               scene_anchor=scene_anchor)
         except Exception as e:                # noqa: BLE001
             attempts.append({"seed": seed, "ok": False, "error": repr(e)})
             print(f"  [attempt {i}] seed {seed}: 생성실패 {e!r}")
@@ -275,10 +308,13 @@ def _parse_size(s: str) -> tuple[int, int]:
 
 
 def main(argv: list[str]) -> int:
-    ap = argparse.ArgumentParser(description="fal.ai 커버 배경 생성 (하우스 스타일 v2)")
+    ap = argparse.ArgumentParser(description="fal.ai 커버 배경 생성 (프롬프트 3층 v3)")
     ap.add_argument("slug", nargs="?", help="곡 slug (tracks/<slug>/ 출력 경로 근거)")
-    ap.add_argument("--scene", help="곡별 장면 한 줄(하우스 템플릿에 삽입)")
-    ap.add_argument("--prompt", help="전체 프롬프트 직접 지정(템플릿 우회)")
+    ap.add_argument("--scene", help="L1 SCENE — 가사 유래 장면 앵커(최전방). 하늘/물/바다는 가사 실재 시만")
+    ap.add_argument("--grade", default="day", choices=GRADES,
+                    help="L3 GRADE — 하우스 그레이드. day(기본) | bright_nocturne(야간 정서)")
+    ap.add_argument("--anchor", help="SCENE 앵커 근거 가사 줄번호(예: L12,L14). genlog 기록용")
+    ap.add_argument("--prompt", help="전체 프롬프트 직접 지정(3층 빌더 우회)")
     ap.add_argument("--seed", type=int, default=None, help="base seed(미지정 시 시각 기반)")
     ap.add_argument("--size", default="2560x1440", help="WxH (기본 2560x1440)")
     ap.add_argument("--out", help="단일 생성 출력 경로(--single 시)")
@@ -291,11 +327,11 @@ def main(argv: list[str]) -> int:
 
     width, height = _parse_size(args.size)
 
-    # 프롬프트 결정
+    # 프롬프트 결정 (3층: SCENE→CAMERA→GRADE)
     if args.prompt:
         prompt = args.prompt
     elif args.scene:
-        prompt = build_house_prompt(args.scene)
+        prompt = build_prompt(args.scene, grade=args.grade)
     else:
         ap.error("--scene 또는 --prompt 중 하나는 필요합니다")
 
@@ -313,7 +349,8 @@ def main(argv: list[str]) -> int:
     # 단일 생성
     if args.single or args.candidates <= 1:
         out = args.out or (REPO / "tracks" / (args.slug or "bg") / f"bg_{args.slug or 'out'}.png")
-        info = generate_bg(prompt, out, width, height, args.seed, refs)
+        info = generate_bg(prompt, out, width, height, args.seed, refs,
+                           scene_anchor=args.anchor)
         dt = time.monotonic() - t0
         tc = tone_check(info["path"])
         print(f"[fal_bg] OK: {info['path']} ({info['bytes']}B, {info['width']}x{info['height']}, "
@@ -327,7 +364,8 @@ def main(argv: list[str]) -> int:
         ap.error("후보 모드는 slug 가 필요합니다(출력 경로).")
     res = generate_candidates(prompt, args.slug, width=width, height=height,
                               base_seed=args.seed, target=args.candidates,
-                              max_retries=args.max_retries, reference_images=refs)
+                              max_retries=args.max_retries, reference_images=refs,
+                              scene_anchor=args.anchor)
     dt = time.monotonic() - t0
     print(f"\n[fal_bg] 후보 {res['secured']}/{res['target']}장 확보 "
           f"(시도 {len(res['attempts'])}회) in {dt:.1f}s")
