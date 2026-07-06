@@ -20,10 +20,12 @@ ROOT = Path(__file__).resolve().parent
 # ── 곡별 레지스트리 (네비게이터가 곡마다 추가) ────────────────────────────
 TRACKS = {
     "amumaldo": {
-        "style": "luminous_dawn",
+        # 2026-07-06 확정: 사진 커버(color_field + --bg fal_bg 326469, 놀이터 벤치/골목).
+        # 구 luminous_dawn(playground 라인아트)은 gate1_verify FAIL로 폐기. sky/glows/motif는 color_field에서 미사용.
+        "style": "color_field",
         "title_ko": "아무말도",
         "title_latin": "I Said Nothing",
-        "motif": "playground",          # 벤치 + 그네 (빛 라인아트)
+        "motif": "playground",          # (구 라인아트 모티프 — color_field에서 미사용, 이력 보존)
         # 여명 팔레트(위→아래): 페리윙클 하늘 → 라벤더 → 모브로즈 → 살구 → 크림골드. 밝되 채도 유지.
         "sky": [(138,170,214), (172,168,208), (210,176,196), (244,192,148), (251,221,176)],
         "glows": [  # (x비율, y비율, 반경비율, (r,g,b), 세기) — 액센트만, 워시아웃 금지

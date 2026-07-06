@@ -1,0 +1,22 @@
+{
+  "model": "fal-ai/flux-2-pro/edit",
+  "prompt": "Use @image1 and @image2 ONLY as strict style references for color grade, exposure and saturation — do NOT copy their buildings, layout or composition. Generate a completely new scene. An empty playground bench beside old swing sets in a Korean apartment complex courtyard, streetlamp poles standing along the path, a narrow alley receding between apartment blocks in the distance. Wide eye-level shot, bench slightly off-center left, gentle depth of field, no people, no faces, no text. Brilliant azure daylight, crisp high-key exposure, vivid clear blue tones throughout.",
+  "seed": 326468,
+  "seed_requested": 326468,
+  "scene_anchor": "L1,L2,L5",
+  "requested": {
+    "width": 2560,
+    "height": 1440
+  },
+  "actual": {
+    "width": 2560,
+    "height": 1440
+  },
+  "reference_images": [
+    "C:\\hades\\style_ref\\donghae.png",
+    "C:\\hades\\style_ref\\songdo_bluehour.png"
+  ],
+  "output": "bg_amumaldo_326468.png",
+  "bytes": 7368711,
+  "created": "2026-07-06T17:31:40"
+}
