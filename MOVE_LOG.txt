@@ -56,3 +56,15 @@ tracks/okryeon/_stale_oldtemplate → _quarantine_20260706/misc/ | 구 템플릿
 /c/Users/user/OneDrive/바탕 화면/1_진행중/Claude_AI작업/음악생성/If we meet again.mp3 → /c/Users/user/OneDrive/HADES_audio_backup/If we meet again__od_0dcc2ed0.mp3 | 라이브 미매칭(0dcc2ed0) 콜드백업(원위치 사본0)
 /c/Users/user/OneDrive/바탕 화면/1_진행중/Claude_AI작업/음악생성/The Vow That Defies Death.mp3 → /c/Users/user/OneDrive/HADES_audio_backup/The Vow That Defies Death__od_6c68eede.mp3 | 라이브 미매칭(6c68eede) 콜드백업(원위치 사본0)
 /c/Users/user/OneDrive/바탕 화면/1_진행중/Claude_AI작업/음악생성/살펴 가.mp3 → _incoming_review/살펴가__onedrive_3856cecc.mp3 (복사) + /c/Users/user/OneDrive/HADES_audio_backup/살펴 가.mp3 (원본이동) | 크기상이(3856cecc) 검토용 복사+콜드백업
+
+## [D] slug 이름변경 (스모크 PASS 후 · config paths.audio 동시갱신)
+tracks/amumaldo/audio.mp3 → tracks/amumaldo/amumaldo.mp3 | slug 표준 명명 집행
+tracks/bomnal/audio.mp3 → tracks/bomnal/bomnal.mp3 | slug 표준 명명 집행
+tracks/ganda/audio.mp3 → tracks/ganda/ganda.mp3 | slug 표준 명명 집행
+tracks/geoul_oneul/audio.mp3 → tracks/geoul_oneul/geoul_oneul.mp3 | slug 표준 명명 집행
+tracks/geureoke/audio.mp3 → tracks/geureoke/geureoke.mp3 | slug 표준 명명 집행
+tracks/gueup/audio.mp3 → tracks/gueup/gueup.mp3 | slug 표준 명명 집행
+tracks/okryeon/audio.mp3 → tracks/okryeon/okryeon.mp3 | slug 표준 명명 집행
+tracks/owol/audio.mp3 → tracks/owol/owol.mp3 | slug 표준 명명 집행
+tracks/radio/audio.mp3 → tracks/radio/radio.mp3 | slug 표준 명명 집행
+tracks/songdo/audio.mp3 → tracks/songdo/songdo.mp3 | slug 표준 명명 집행

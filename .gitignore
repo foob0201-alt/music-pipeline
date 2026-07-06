@@ -7,7 +7,7 @@ threads_token.json
 *.pem
 
 # ===== 곡별 입력/생성물 =====
-tracks/**/audio.mp3
+tracks/**/*.mp3
 tracks/**/*.wav
 tracks/**/cover.jpg
 tracks/**/cover_base.jpg

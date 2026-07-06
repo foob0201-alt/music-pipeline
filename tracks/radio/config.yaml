@@ -29,3 +29,6 @@ meta:
   # ---- 창작 메모(파이프라인 비참조) ----
   # title_en: "Early Morning Radio"
   # style(Suno Style 필드용): dreamy lo-fi ambient morning radio, no vocals
+
+paths:
+  audio: radio.mp3

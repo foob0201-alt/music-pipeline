@@ -13,3 +13,6 @@ track:
 meta:
   title: "봄날"
   artist: "영석고고"
+
+paths:
+  audio: bomnal.mp3

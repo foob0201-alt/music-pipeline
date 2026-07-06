@@ -13,3 +13,6 @@ track:
 meta:
   title: "동해로"
   artist: "영석고고"
+
+paths:
+  audio: donghae.mp3

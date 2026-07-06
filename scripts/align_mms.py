@@ -6,7 +6,7 @@
 # 한국어는 uroman 로마자화로 모델 사전에 매칭, <star> 토큰으로 무음/간주 흡수해
 # 균등분할 폴백의 누적 드리프트를 제거한다.
 #
-#   입력 : tracks/<track>/audio.mp3
+#   입력 : tracks/<track>/<track>.mp3  (config.yaml paths.audio 우선, 레거시 audio.mp3 폴백)
 #          tracks/<track>/lyrics_ko.txt   (섹션태그 [..] / 공백줄은 자동 제외)
 #   출력 : tracks/<track>/out/align.json          ← 싱크의 단일 진실원(줄/단어 타임코드)
 #          tracks/<track>/out/_align_preview.lrc   ← 음원과 같이 틀어 육안 검증(렌더 불필요)
@@ -34,7 +34,29 @@ if len(sys.argv) < 2:
 TRACK = sys.argv[1]
 ROOT  = Path(__file__).resolve().parents[1]          # scripts/ 의 상위 = repo 루트
 TDIR  = ROOT / "tracks" / TRACK
-AUDIO = TDIR / "audio.mp3"
+
+def _resolve_audio(tdir: Path, track: str) -> Path:
+    """음원 경로 해석: config.yaml paths.audio → <slug>.mp3 → 레거시 audio.mp3(경고)."""
+    cfg_name = None
+    cfgp = tdir / "config.yaml"
+    if cfgp.exists():
+        try:
+            import yaml
+            c = yaml.safe_load(cfgp.read_text(encoding="utf-8")) or {}
+            cfg_name = (c.get("paths") or {}).get("audio")
+        except Exception:
+            cfg_name = None
+    for name in ([cfg_name] if cfg_name else []) + [f"{track}.mp3"]:
+        p = tdir / name
+        if p.exists():
+            return p
+    legacy = tdir / "audio.mp3"
+    if legacy.exists():
+        print(f"[warn] 레거시 파일명 audio.mp3 사용 — 표준 명은 {track}.mp3")
+        return legacy
+    return tdir / f"{track}.mp3"
+
+AUDIO = _resolve_audio(TDIR, TRACK)
 LYRKO = TDIR / "lyrics_ko.txt"
 OUT   = TDIR / "out"; OUT.mkdir(parents=True, exist_ok=True)
 

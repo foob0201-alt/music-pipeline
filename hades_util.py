@@ -85,11 +85,21 @@ class Context:
         out_dir = track_dir / p.get("out_dir", "out")
         out_dir.mkdir(parents=True, exist_ok=True)
         ly_en = track_dir / p["lyrics_en"] if p.get("lyrics_en") else None
+        # 음원 경로 해석: config paths.audio → <slug>.mp3 → 레거시 audio.mp3(경고)
+        track_name = cfg["track"]["name"]
+        audio_path = track_dir / p.get("audio", f"{track_name}.mp3")
+        if not audio_path.exists():
+            for cand in (track_dir / f"{track_name}.mp3", track_dir / "audio.mp3"):
+                if cand.exists():
+                    if cand.name == "audio.mp3":
+                        print(f"[warn] 레거시 audio.mp3 사용 — 표준 명은 {track_name}.mp3")
+                    audio_path = cand
+                    break
         return cls(
             cfg=cfg,
             track_dir=track_dir,
             out_dir=out_dir,
-            audio=track_dir / p["audio"],
+            audio=audio_path,
             cover=track_dir / p["cover"],
             lyrics_ko=track_dir / p["lyrics_ko"],
             lyrics_en=ly_en,

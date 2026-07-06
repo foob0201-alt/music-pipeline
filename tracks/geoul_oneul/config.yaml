@@ -13,3 +13,6 @@ track:
 meta:
   title: "거울 속의 오늘"
   artist: "영석고고"
+
+paths:
+  audio: geoul_oneul.mp3

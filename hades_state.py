@@ -258,7 +258,7 @@ def advance(slug: str, *, cfg: dict) -> dict:
 
             if cur == "NEW":
                 if not ctx.audio.exists():
-                    set_state(st, "NEW", error="audio.mp3 없음"); return st
+                    set_state(st, "NEW", error="음원 파일 없음(<slug>.mp3/audio.mp3)"); return st
                 st["fingerprint"] = {"md5": _md5(ctx.audio), "duration": _probe_dur(ctx.audio)}
                 set_state(st, "FINGERPRINTED")
 

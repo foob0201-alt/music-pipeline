@@ -25,3 +25,6 @@ meta:
 title_ko_scale: 104
 title_en_gap: 62
 title_en_scale: 145
+
+paths:
+  audio: geureoke.mp3

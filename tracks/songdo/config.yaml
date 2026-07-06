@@ -17,3 +17,6 @@ meta:
   # ---- 창작 메모(파이프라인 비참조) ----
   # title_en: "Songdo Yuwonji"
   # style(Suno Style 필드용): warm romantic K-pop/R&B ballad, 인천 로컬 노스탤지어
+
+paths:
+  audio: songdo.mp3

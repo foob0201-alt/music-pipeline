@@ -14,3 +14,6 @@ track:
 meta:
   title: "아무말도"
   artist: "영석고고"
+
+paths:
+  audio: amumaldo.mp3
