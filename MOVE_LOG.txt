@@ -1,0 +1,58 @@
+# MOVE_LOG — HADES 정리작전 3단계 (2026-07-06)
+# 형식: 원경로 → 새경로 | 사유   (삭제 0건 · 모든 이동 격리 또는 표준정돈)
+# ================================================================
+
+## [A] 내부 잔재 격리
+audio.mp3 → _quarantine_20260706/root_legacy/audio.mp3 | 루트 레거시 음원, md5 08007c27=amumaldo 동일본 격리
+tracks/donghae/audio.mp3 → _quarantine_20260706/donghae_dup/audio.mp3 | donghae.mp3와 byte 동일본 중복 제거(donghae.mp3 유지)
+tracks/geureoke/out/subtitle_test_100.mp4 → _quarantine_20260706/tests/ | 자막 스케일 테스트 산출물
+tracks/geureoke/out/subtitle_test_115.mp4 → _quarantine_20260706/tests/ | 자막 스케일 테스트 산출물
+tracks/geureoke/out/subtitle_test_125.mp4 → _quarantine_20260706/tests/ | 자막 스케일 테스트 산출물
+tracks/bomnal/out/_old_pre115 → _quarantine_20260706/bomnal_old/ | 1.15 이전 구규격 렌더 보관
+tracks/donghae/out/files (1).zip → _quarantine_20260706/misc/ | 다운로드 zip 잔재
+tracks/okryeon/_stale_oldtemplate → _quarantine_20260706/misc/ | 구 템플릿 스테일 잔재
+
+## [B] 음원/ dedup (라이브 md5 대조)
+음원/Early morning radio.mp3 → _quarantine_20260706/suno_originals/ | 라이브 radio(801dc91a) 일치 — 대장원본 통합
+음원/간다 말했다.mp3 → _quarantine_20260706/suno_originals/ | 라이브 ganda(7fb0453a) 일치
+음원/거울 속의 오늘(트로트).mp3 → _quarantine_20260706/suno_originals/ | 라이브 geoul_oneul(7b13bf64) 일치
+음원/그날의 오월.mp3 → _quarantine_20260706/suno_originals/ | 라이브 owol(2220c367) 일치
+음원/그렇게 지나간다.mp3 → _quarantine_20260706/suno_originals/ | 라이브 geureoke(981cfbc9) 일치
+음원/새 폴더/geureoke.mp3 → _quarantine_20260706/suno_originals/geureoke__새폴더.mp3 | 라이브 geureoke(981cfbc9) 일치(중복본)
+음원/송도 유원지.mp3 → _quarantine_20260706/suno_originals/ | 라이브 songdo(03d6aaff) 일치
+음원/오늘만 같으면 구읍뱃터.mp3 → _quarantine_20260706/suno_originals/ | 라이브 gueup(4109e58f) 일치
+음원/옥련동.mp3 → _quarantine_20260706/suno_originals/ | 라이브 okryeon(15b3405e) 일치
+음원/동해로 (Remastered).mp3 → _quarantine_20260706/donghae_remastered/ | a27e4cc9 — 라이브 donghae(5a20e327)와 상이한 리마스터, 격리
+음원/If we meet again.mp3 → _incoming_review/ | 라이브 미매칭·원장 미등재(0fd76903) 검토대기
+음원/If we meet again (1).mp3 → _incoming_review/ | 라이브 미매칭·원장 미등재(83963eed) 검토대기
+음원/Neon Pulse.mp3 → _incoming_review/ | 라이브 미매칭(18277a49) 검토대기
+음원/Shadow (Electropop Bounce Remix).mp3 → _incoming_review/ | 라이브 미매칭(a39f7bf8) 검토대기
+음원/Spring Rain Dance Night (리믹스).mp3 → _incoming_review/ | 라이브 미매칭(ee2c80ff) 검토대기
+음원/The Vow That Defies Death.mp3 → _incoming_review/ | 라이브 미매칭(744cc280) 검토대기
+음원/The Vow That Defies Death (1).mp3 → _incoming_review/ | 라이브 미매칭(024fe58f) 검토대기
+음원/그냥 좋았어 (리믹스).mp3 → _incoming_review/ | 라이브 미매칭(56509f60) 검토대기
+음원/번지다 (Epic Bounce Drop Remix).mp3 → _incoming_review/ | 라이브 미매칭(d0146772) 검토대기
+음원/변함없는 노을.mp3 → _incoming_review/ | 라이브 미매칭(b6b05ef9) 검토대기
+음원/봄날 그방.mp3 → _incoming_review/봄날 그방__음원_440a7830.mp3 | ⚠라이브 bomnal(e0e8f9c2)과 상이(440a7830) — bomnal 원본 불일치 검토
+음원/살펴 가.mp3 → _incoming_review/살펴 가__음원_aa276033.mp3 | 라이브 미매칭(aa276033) 검토대기
+음원/좋은 아침이야, 엄마 (리믹스).mp3 → _incoming_review/ | 라이브 미매칭(3cffb5ea) 검토대기
+
+## [C] OneDrive 콜드 백업 (원위치 사본 0화 · 삭제 없음)
+/c/Users/user/OneDrive/바탕 화면/1_진행중/Claude_AI작업/2025/bgm/bgm_may.mp3.mp3 → /c/Users/user/OneDrive/HADES_audio_backup/ | 2025 BGM 스템 콜드백업
+/c/Users/user/OneDrive/바탕 화면/1_진행중/Claude_AI작업/2025/bgm/calm.mp3.mp3 → /c/Users/user/OneDrive/HADES_audio_backup/ | 2025 BGM 스템 콜드백업
+/c/Users/user/OneDrive/바탕 화면/1_진행중/Claude_AI작업/2025/bgm/epic.mp3 (2).mp3 → /c/Users/user/OneDrive/HADES_audio_backup/ | 2025 BGM 스템 콜드백업
+/c/Users/user/OneDrive/바탕 화면/1_진행중/Claude_AI작업/2025/bgm/epic.mp3.mp3 → /c/Users/user/OneDrive/HADES_audio_backup/ | 2025 BGM 스템 콜드백업
+/c/Users/user/OneDrive/바탕 화면/1_진행중/Claude_AI작업/2025/bgm/exciting.mp3 (2).mp3 → /c/Users/user/OneDrive/HADES_audio_backup/ | 2025 BGM 스템 콜드백업
+/c/Users/user/OneDrive/바탕 화면/1_진행중/Claude_AI작업/2025/bgm/exciting.mp3.mp3 → /c/Users/user/OneDrive/HADES_audio_backup/ | 2025 BGM 스템 콜드백업
+/c/Users/user/OneDrive/바탕 화면/1_진행중/Claude_AI작업/2025/bgm/오월 공원미스트.mp3 → /c/Users/user/OneDrive/HADES_audio_backup/ | 2025 BGM 스템 콜드백업
+/c/Users/user/OneDrive/바탕 화면/1_진행중/Claude_AI작업/2025/bgm/오월 미스트비 (Remastered).mp3 → /c/Users/user/OneDrive/HADES_audio_backup/ | 2025 BGM 스템 콜드백업
+/c/Users/user/OneDrive/바탕 화면/1_진행중/Claude_AI작업/2025/bgm/오월의 미스트비 (리믹스).mp3 → /c/Users/user/OneDrive/HADES_audio_backup/ | 2025 BGM 스템 콜드백업
+/c/Users/user/OneDrive/바탕 화면/1_진행중/Claude_AI작업/음악생성/bomnal_audio.mp3 → /c/Users/user/OneDrive/HADES_audio_backup/ | 라이브 bomnal(e0e8f9c2) 일치 콜드백업
+/c/Users/user/OneDrive/바탕 화면/1_진행중/Claude_AI작업/음악생성/donghae.mp3 → /c/Users/user/OneDrive/HADES_audio_backup/ | 라이브 donghae(5a20e327) 일치 콜드백업
+/c/Users/user/OneDrive/바탕 화면/1_진행중/Claude_AI작업/음악생성/Early morning radio.mp3 → /c/Users/user/OneDrive/HADES_audio_backup/ | 라이브 radio(801dc91a) 일치 콜드백업
+/c/Users/user/OneDrive/바탕 화면/1_진행중/Claude_AI작업/음악생성/_archive_misplaced/봄날 그방.mp3 → /c/Users/user/OneDrive/HADES_audio_backup/봄날 그방__misplaced_e0e8f9c2.mp3 | 라이브 bomnal(e0e8f9c2) 일치 콜드백업
+/c/Users/user/OneDrive/바탕 화면/1_진행중/Claude_AI작업/음악생성/거울 속의 오늘(트로트).mp3 → /c/Users/user/OneDrive/HADES_audio_backup/ | 라이브 geoul_oneul(7b13bf64) 일치 콜드백업
+/c/Users/user/OneDrive/바탕 화면/1_진행중/Claude_AI작업/음악생성/아무말도.mp3 → /c/Users/user/OneDrive/HADES_audio_backup/ | 라이브 amumaldo(08007c27) 일치 콜드백업
+/c/Users/user/OneDrive/바탕 화면/1_진행중/Claude_AI작업/음악생성/If we meet again.mp3 → /c/Users/user/OneDrive/HADES_audio_backup/If we meet again__od_0dcc2ed0.mp3 | 라이브 미매칭(0dcc2ed0) 콜드백업(원위치 사본0)
+/c/Users/user/OneDrive/바탕 화면/1_진행중/Claude_AI작업/음악생성/The Vow That Defies Death.mp3 → /c/Users/user/OneDrive/HADES_audio_backup/The Vow That Defies Death__od_6c68eede.mp3 | 라이브 미매칭(6c68eede) 콜드백업(원위치 사본0)
+/c/Users/user/OneDrive/바탕 화면/1_진행중/Claude_AI작업/음악생성/살펴 가.mp3 → _incoming_review/살펴가__onedrive_3856cecc.mp3 (복사) + /c/Users/user/OneDrive/HADES_audio_backup/살펴 가.mp3 (원본이동) | 크기상이(3856cecc) 검토용 복사+콜드백업

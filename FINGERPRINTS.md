@@ -10,6 +10,7 @@
 | gueup | 오늘만 같으면 구읍뱃터.mp3 | `4109e58f7c0404af66b8b32847c6b2a3` | 178.80 | OK | 1차 |
 | owol | 그날의 오월.mp3 | `2220c367208db94ecfb641e168d68103` | 175.84 | OK | 1차 |
 | ganda | 간다 말했다.mp3 | `7fb0453a6cff28672b11f42d5877d4c8` | 258.92 | OK | 1차 |
+| radio | Early morning radio.mp3 | `801dc91a3d6f132b5b503a617c2483d3` | 194.40 | OK | 신규(2026-07-06 등재) |
 
 ## 참고: 기존 빌드 트랙 (별도 md5)
 | slug | md5 | duration(s) | 비고 |
