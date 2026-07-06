@@ -1,6 +1,6 @@
 {
   "slug": "songdo",
-  "state": "QUEUED",
+  "state": "UPLOADED",
   "error": null,
   "history": [
     {
@@ -34,13 +34,17 @@
     {
       "state": "QUEUED",
       "ts": "2026-07-02T15:22:32"
+    },
+    {
+      "state": "UPLOADED",
+      "ts": "2026-07-03T00:00:00"
     }
   ],
   "fingerprint": {
     "md5": "03d6aaffba046ed27672c9fd601620cc",
     "duration": 196.079979
   },
-  "updated": "2026-07-02T15:22:32",
+  "updated": "2026-07-03T00:00:00",
   "verify": {
     "ok": true,
     "items": [
@@ -91,5 +95,12 @@
       }
     ],
     "reasons": []
+  },
+  "youtube": {
+    "video_id": "RUgKkc33kKA",
+    "url": "https://www.youtube.com/watch?v=RUgKkc33kKA",
+    "uploaded_via": "manual",
+    "uploaded_at": "2026-07-03T00:00:00",
+    "published_at": "2026-07-02T07:25:37Z"
   }
 }

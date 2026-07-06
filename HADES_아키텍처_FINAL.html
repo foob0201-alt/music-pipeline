@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HADES 루프 아키텍처 FINAL — 지휘 계통 상황판 (확정)</title>
+<style>
+  :root{
+    --ink:#0d1424;          /* 심야 인디고 — 상황판 바탕 */
+    --panel:#131c31;
+    --panel2:#182440;
+    --line:#2a3a5e;
+    --gold:#ffd700;         /* KO 자막 골드 — 프로젝트 고유색 */
+    --cream:#dcd7be;        /* EN 자막 크림 */
+    --azure:#4db8ff;        /* 밝은 블루 — 커버 그레이드 톤 */
+    --mint:#6fe3c1;
+    --red:#ff6b6b;
+    --dim:#8fa3c8;
+    --code:#a8c7e8;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--ink);
+    color:var(--cream);
+    font-family:'Malgun Gothic','맑은 고딕',sans-serif;
+    line-height:1.55;
+    padding:28px 20px 80px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+
+  /* ── 헤더 ── */
+  header{border-bottom:2px solid var(--gold);padding-bottom:18px;margin-bottom:30px;
+    display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px}
+  h1{font-size:26px;color:#fff;letter-spacing:.5px}
+  h1 .sig{font-family:'Great Vibes',cursive;color:var(--gold);font-size:30px;margin-right:10px}
+  .stamp{font-size:12px;color:var(--dim);text-align:right}
+  .stamp b{color:var(--gold)}
+
+  h2{font-size:15px;color:var(--gold);letter-spacing:2px;margin:38px 0 14px;
+    padding-left:12px;border-left:4px solid var(--gold)}
+  h2 small{color:var(--dim);font-weight:normal;letter-spacing:0;margin-left:8px}
+
+  /* ── 공통 카드 ── */
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+  .tag{display:inline-block;font-size:10.5px;padding:1px 8px;border-radius:10px;margin-left:6px;vertical-align:middle}
+  .t-code{background:#1d3a2a;color:var(--mint);border:1px solid #2c5c42}
+  .t-sonnet{background:#3a2d1d;color:var(--gold);border:1px solid #6b5320}
+  .t-haiku{background:#1d2c3a;color:var(--azure);border:1px solid #2c4a6b}
+  .t-fal{background:#2d1d3a;color:#d0a8ff;border:1px solid #4d3a6b}
+  .t-new{background:var(--red);color:#fff;font-weight:bold}
+  .t-done{background:#234;color:var(--mint)}
+
+  /* ── ① 지휘 계통 ── */
+  .cmd{display:grid;grid-template-columns:1fr;gap:0;position:relative}
+  .tier{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative;padding:10px 0}
+  .tier + .tier::before{content:"";position:absolute;top:-4px;left:50%;width:2px;height:14px;background:var(--line)}
+  .node{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+    padding:10px 16px;min-width:200px;text-align:center}
+  .node .role{font-size:11px;color:var(--dim);letter-spacing:1.5px}
+  .node .name{font-size:15px;color:#fff;font-weight:bold;margin:2px 0}
+  .node .desc{font-size:11.5px;color:var(--dim)}
+  .node.human{border-color:var(--gold);box-shadow:0 0 12px rgba(255,215,0,.12)}
+  .node.human .name{color:var(--gold)}
+  .node.cs{border-color:var(--azure)}
+  .node.cs .name{color:var(--azure)}
+  .node.cmd-n{border-color:var(--mint);min-width:340px}
+  .node.cmd-n .name{color:var(--mint)}
+  .node.shadow{border-style:dashed;border-color:var(--red)}
+  .node.shadow .name{color:var(--red)}
+  .uplink{font-size:11px;color:var(--dim);text-align:center;margin:2px 0}
+  .uplink b{color:var(--gold)}
+
+  /* ── ② 전투 라인 (파이프) ── */
+  .pipe{display:flex;flex-direction:column;gap:0;margin-top:6px}
+  .step{display:grid;grid-template-columns:34px 1fr;gap:0;position:relative}
+  .rail{position:relative}
+  .rail::before{content:"";position:absolute;left:15px;top:0;bottom:0;width:2px;background:var(--line)}
+  .step:first-child .rail::before{top:22px}
+  .step:last-child .rail::before{bottom:auto;height:22px}
+  .dot{position:absolute;left:9px;top:16px;width:14px;height:14px;border-radius:50%;
+    background:var(--ink);border:3px solid var(--azure)}
+  .step.gate .dot{border-color:var(--gold);border-radius:2px;transform:rotate(45deg)}
+  .step.hold-src .dot{border-color:var(--red)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+    padding:10px 14px;margin:5px 0}
+  .step.gate .card{border-color:var(--gold);background:#1a1a10}
+  .card .h{display:flex;align-items:center;flex-wrap:wrap;gap:4px}
+  .card .h b{color:#fff;font-size:14px}
+  .card .io{font-size:11.5px;color:var(--code);font-family:Consolas,monospace;margin-top:3px}
+  .card .note{font-size:12px;color:var(--dim);margin-top:2px}
+  .hold{color:var(--red);font-size:11.5px;font-weight:bold}
+
+  /* ── 감시/암행 사이드 ── */
+  .watch-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:760px){.watch-grid{grid-template-columns:1fr}}
+  .watch{border-radius:8px;padding:12px 14px}
+  .watch.dog{background:#0f1f1a;border:1px solid #2c5c42}
+  .watch.aud{background:#241016;border:1px dashed var(--red)}
+  .watch b.ttl{font-size:14px}
+  .dog b.ttl{color:var(--mint)}
+  .aud b.ttl{color:var(--red)}
+  .watch ul{list-style:none;margin-top:6px}
+  .watch li{font-size:12px;color:var(--dim);padding:2px 0 2px 14px;position:relative}
+  .watch li::before{content:"▸";position:absolute;left:0;color:inherit}
+  .watch .route{margin-top:8px;font-size:11.5px;padding-top:8px;border-top:1px solid var(--line)}
+  .dog .route{color:var(--mint)}
+  .aud .route{color:var(--red)}
+
+  /* ── ③ 상태 기계 ── */
+  .fsm{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--panel);
+    border:1px solid var(--line);border-radius:8px;padding:14px}
+  .st{background:var(--panel2);border:1px solid var(--azure);border-radius:5px;
+    padding:4px 10px;font-size:12px;font-family:Consolas,monospace;color:var(--azure)}
+  .st.done{border-color:var(--mint);color:var(--mint)}
+  .st.up{border-color:var(--gold);color:var(--gold)}
+  .arr{color:var(--dim);font-size:12px}
+  .arr small{display:block;font-size:9.5px;text-align:center;color:#5a6f95}
+  .holds{margin-top:10px;font-size:12px;color:var(--red)}
+  .holds b{color:var(--red)}
+  .fsm-note{font-size:11.5px;color:var(--dim);margin-top:8px}
+
+  /* ── 판단 장부 ── */
+  .ledger{background:#0a0f1c;border:1px solid var(--line);border-radius:8px;
+    padding:12px 14px;font-family:Consolas,monospace;font-size:12px;color:var(--code);
+    overflow-x:auto;white-space:pre}
+  .ledger .k{color:var(--gold)}
+  .brief{background:#1a1a10;border:1px solid var(--gold);border-radius:8px;
+    padding:12px 14px;margin-top:10px;font-size:13px}
+  .brief b{color:var(--gold)}
+
+  /* ── 테이블 ── */
+  table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}
+  th{background:var(--panel2);color:var(--gold);text-align:left;padding:7px 10px;
+    font-size:11.5px;letter-spacing:1px;border:1px solid var(--line)}
+  td{padding:6px 10px;border:1px solid var(--line);color:var(--cream)}
+  td.c{font-family:Consolas,monospace;color:var(--code);font-size:12px}
+  td .why{color:var(--dim);font-size:11.5px}
+
+  /* ── 로드맵 ── */
+  .road{display:flex;flex-wrap:wrap;gap:0;align-items:stretch;margin-top:6px}
+  .ph{flex:1;min-width:130px;background:var(--panel);border:1px solid var(--line);
+    padding:10px 12px;position:relative;border-radius:0}
+  .ph:first-child{border-radius:8px 0 0 8px}
+  .ph:last-child{border-radius:0 8px 8px 0}
+  .ph .num{font-size:11px;color:var(--gold);letter-spacing:1px}
+  .ph .nm{font-size:13.5px;color:#fff;font-weight:bold;margin:2px 0}
+  .ph .dep{font-size:11px;color:var(--dim)}
+  .ph.now{background:#1a1a10;border-color:var(--gold)}
+  .ph::after{content:"▶";position:absolute;right:-7px;top:42%;color:var(--gold);
+    font-size:10px;z-index:2}
+  .ph:last-child::after{content:""}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:26px;padding-top:14px;
+    border-top:1px solid var(--line);font-size:11.5px;color:var(--dim)}
+  .legend span::before{content:"■ ";font-size:13px}
+  .l-code::before{color:var(--mint)} .l-sonnet::before{color:var(--gold)}
+  .l-haiku::before{color:var(--azure)} .l-fal::before{color:#d0a8ff}
+  .l-gate::before{color:var(--gold)} .l-hold::before{color:var(--red)}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1><span class="sig">Reina</span>HADES 루프 아키텍처 <span style="color:var(--gold)">FINAL</span> — 지휘 계통 상황판</h1>
+  <div class="stamp">2026-07-03 확정 — 최종점검 5건 반영<br>부하 <b>14</b> · 루프 내 LLM <b>3자리</b> · 실현성 서치 확인 완료</div>
+</header>
+
+<!-- ① 지휘 계통 -->
+<h2>① 지휘 계통 <small>판단은 위로, 실행은 아래로</small></h2>
+<div class="cmd">
+  <div class="tier">
+    <div class="node human"><div class="role">인간 접점 3+1</div>
+      <div class="name">영석고고 <span class="tag t-sonnet" style="background:#3a2d1d">최종 결정권</span></div>
+      <div class="desc">Suno 생성 · HOLD 재가 · 스팟체크 · 암행직보 수신</div></div>
+  </div>
+  <div class="uplink">▲ brief 3줄 보고 · HOLD 에스컬레이션 · 암행 직보</div>
+  <div class="tier">
+    <div class="node cs"><div class="role">CS · 네비게이터</div>
+      <div class="name">Claude 채팅 <span class="tag t-haiku">모델: Opus급</span></div>
+      <div class="desc">기준 변경 · 예외 재가 · 설계 — 루프 밖에서 지휘</div></div>
+  </div>
+  <div class="uplink">▲ decision_log 근거 · ▼ 재가·기준</div>
+  <div class="tier">
+    <div class="node cmd-n"><div class="role">대장</div>
+      <div class="name">hades_loop.py <span class="tag t-code">모델: 없음 (코드)</span><span class="tag t-new">⑤빌드</span></div>
+      <div class="desc">틱 60초: 상태 스캔 → 디스패치 → 판단장부 기록 → 09:00 brief 생성<br>
+      발행 캡 1건/일 집행 · 실패 2회 = HOLD (자기판단 금지)<br><b style="color:var(--gold)">lockfile 중복실행 락</b> · schtasks 구동 · state.json 영속 (멱등)</div></div>
+  </div>
+  <div class="uplink">▼ 디스패치(파라미터) · ▲ 결과·로그 · ◀ watchdog STALL 신호</div>
+  <div class="tier">
+    <div class="node"><div class="role">전투병 6</div>
+      <div class="name">파이프 모듈 <span class="tag t-code">전원 코드</span></div>
+      <div class="desc">preflight·align_sub·encode·make_shorts·scheduler = <b style="color:var(--mint)">코드</b><br>cover_smith 배경만 = <b style="color:#d0a8ff">fal FLUX.2 pro</b></div></div>
+    <div class="node" style="border-color:var(--gold)"><div class="role">참모 2 — 루프 내 LLM</div>
+      <div class="name">scene_check <span class="tag t-sonnet">Sonnet 4.6 vision</span></div>
+      <div class="desc">meta_gen = <b style="color:var(--azure)">Haiku 4.5</b> → 미달 시 <b style="color:var(--gold)">Sonnet 승급</b><br>
+<span style="color:var(--mint)">호출 규격: claude -p --bare --output-format json --allowedTools 최소셋</span> (스톨 원천차단)</div></div>
+    <div class="node"><div class="role">헌병 3</div>
+      <div class="name">hooks <span class="tag t-code">모델: 없음 (코드 exit-2)</span></div>
+      <div class="desc">cover_gate · secret_guard · danger_guard</div></div>
+  </div>
+  <div class="tier">
+    <div class="node" style="border-color:var(--mint)"><div class="role">감시병 — 대장 소속</div>
+      <div class="name" style="color:var(--mint)">watchdog.py <span class="tag t-code">모델: 없음 (코드)</span><span class="tag t-new">⑥빌드</span></div>
+      <div class="desc">장애 탐지 → 대장에 STALL</div></div>
+    <div class="node" style="border-color:var(--azure)"><div class="role">전령 — 대장↔영석고고 폰 직결 <span class="tag t-new">신규</span></div>
+      <div class="name" style="color:var(--azure)">courier.py <span class="tag t-code">모델: 없음 (코드)</span></div>
+      <div class="desc">Telegram Bot API 직접 호출 — brief·HOLD 발송(sendMessage)<br>+ 폰 재가 수신(getUpdates→재가파일→대장) · <b>chat_id 허용목록(1인) + 명령형식 검증</b><br>TELEGRAM_BOT_TOKEN → secret_guard 패턴 등재</div></div>
+    <div class="node shadow"><div class="role">암행어사 — CS 직속 (대장 계통 밖)</div>
+      <div class="name">auditor.py <span class="tag t-sonnet">모델: Sonnet 4.6 vision</span><span class="tag t-new">⑧빌드</span></div>
+      <div class="desc">대장을 검열 → CS 직보 (대장 우회) · 검열자 ≥ 피검열자</div></div>
+  </div>
+</div>
+
+<!-- ② 전투 라인 -->
+<h2>② 전투 라인 <small>트랙 1개의 여정 · ◆=게이트 · 빨강=HOLD 발원지</small></h2>
+<div class="pipe">
+
+  <div class="step hold-src"><div class="rail"><div class="dot"></div></div>
+    <div class="card"><div class="h"><b>preflight.py</b><span class="tag t-code">코드</span><span class="tag t-new">③빌드 P0</span></div>
+      <div class="io">audio.mp3 + lyrics_ko/en.txt → fingerprint.json</div>
+      <div class="note">md5·duration ↔ FINGERPRINTS 대조 · KO=EN 줄수 · 폰트 존재 — donghae 오배치 사건 재발 차단</div>
+      <div class="hold">불일치 → HOLD_IDENTITY ⚠</div></div></div>
+
+  <div class="step"><div class="rail"><div class="dot"></div></div>
+    <div class="card"><div class="h"><b>cover_smith</b><span class="tag t-fal">fal FLUX.2 pro</span><span class="tag t-done">완성</span></div>
+      <div class="io">가사 앵커(줄번호 인용) → bg_*.png 2~3후보 → cover.jpg (+cover_base)</div>
+      <div class="note">v3 3-layer 프롬프트 · seed+genlog · 2560×1440 · <b style="color:var(--red)">재시드 캡 3회 → HOLD_COVER (fal 과금 폭주 차단)</b></div></div></div>
+
+  <div class="step gate hold-src"><div class="rail"><div class="dot"></div></div>
+    <div class="card"><div class="h"><b>GATE 1 — gate1_verify</b><span class="tag t-done">완성·무인</span></div>
+      <div class="io">tone_check[코드] + scene_check[Sonnet 4.6 vision · $0.15/콜] + composite[코드] → .cover_ok 서명</div>
+      <div class="note">앵커 존재 · 가사 모순 없음 · 얼굴/텍스트 없음 — 3체크 전부 PASS 시 자동 통과</div>
+      <div class="hold">scene 2연속 FAIL → HOLD_COVER ⚠ (사람 재가)</div></div></div>
+
+  <div class="step"><div class="rail"><div class="dot"></div></div>
+    <div class="card"><div class="h"><b>align_sub</b><span class="tag t-code">MMS_FA 로컬</span><span class="tag t-done">완성</span></div>
+      <div class="io">audio + lyrics → align.json(단일진실) → *_dual.ass (scale 1.15 · KO골드/EN크림)</div></div></div>
+
+  <div class="step hold-src"><div class="rail"><div class="dot"></div></div>
+    <div class="card"><div class="h"><b>encode</b><span class="tag t-code">ffmpeg</span><span class="tag t-done">완성+1항목</span></div>
+      <div class="io">cover + audio + ass → *_dual.mp4 · CRF16 1-pass 2560×1440 30fps · 전역 동시 1개(CPU 직렬)</div>
+      <div class="note">BGM 트랙만: bgm_loop.mov(RGBA 루프) ffmpeg 오버레이 — 파티클·음표·글로우</div></div></div>
+
+  <div class="step gate hold-src"><div class="rail"><div class="dot"></div></div>
+    <div class="card"><div class="h"><b>GATE 2 — 검수 10종</b><span class="tag t-code">ffprobe</span></div>
+      <div class="io">9종(해상도·코덱·픽셀·색·fps·길이·오디오·faststart·stderr) + <b style="color:var(--gold)">10번: 렌더날짜 ≥ 규격확정일</b></div>
+      <div class="note">10번 항목 = 봄날 구렌더 사고에서 신설 — 구규격 렌더의 발행 진입 차단</div>
+      <div class="hold">실패 → HOLD_QC ⚠</div></div></div>
+
+  <div class="step"><div class="rail"><div class="dot"></div></div>
+    <div class="card"><div class="h"><b>make_shorts v2</b><span class="tag t-code">ffmpeg</span><span class="tag t-new">⑦빌드</span></div>
+      <div class="io">0~32s · 1080×1920 전용렌더(크롭 아님) · 세로 전용 ASS 재계산 · 페이드아웃 2s</div>
+      <div class="note">세로+3분 이하 = 자동 Shorts 분류 · <b style="color:var(--gold)">지연 실행: 본편 UPLOADED+1일 시점에 렌더</b> (사전 생산 안 함)</div></div></div>
+
+  <div class="step gate"><div class="rail"><div class="dot"></div></div>
+    <div class="card"><div class="h"><b>upload_scheduler</b><span class="tag t-code">코드</span><span class="tag t-haiku">meta_gen: Haiku 4.5 → 미달 시 Sonnet 승급</span><span class="tag t-new">④빌드 P0</span></div>
+      <div class="io">캡 1건/일 · 본편↔숏츠 격일 교차 · upload_ledger.json 멱등 · videos.insert(OAuth)</div>
+      <div class="note">숏츠는 본편 +1일 이후 · 설명문 곡별 고유(가사발췌+제작노트) · 합성 공시 체크리스트</div></div></div>
+
+</div>
+
+<!-- 감시/암행 -->
+<div class="watch-grid" style="margin-top:14px">
+  <div class="watch dog"><b class="ttl">감시병 watchdog.py</b> <span class="tag t-code">코드</span><span class="tag t-new">⑥빌드</span>
+    <ul><li>틱 30초 — 전 구간 상시</li>
+      <li>프로세스 생존 · 렌더 진행률 정체</li>
+      <li>OneDrive 파일잠금 · 디스크 여유</li>
+      <li>훅 오류 (.venv-align 類)</li>
+      <li>고아 lockfile 감지 · claude -p 무응답 타임아웃</li></ul>
+    <div class="route">→ 이상 시 대장에 STALL 신호 (대장이 조치·장부 기록)</div></div>
+  <div class="watch aud"><b class="ttl">암행어사 auditor.py</b> <span class="tag t-sonnet">Sonnet 4.6 vision</span><span class="tag t-new">⑧빌드</span>
+    <ul><li>발행 5건마다 1건 무작위 발췌</li>
+      <li>공개영상 메타 · 공시 토글 · 썸네일/커버 실물 대조(vision)</li>
+      <li>설명문 중복도 · 원장↔실물 대조</li></ul>
+    <div class="route">→ 대장 우회, CS 직보 · 검열자≥피검열자 · <b>사람 스팟체크 = 암행 보고서 검토로 승격</b>(영상 재시청 불요)</div></div>
+</div>
+
+<!-- ③ 상태 기계 -->
+<h2>③ 트랙 상태 기계 <small>대장의 유일한 법전 — state.json</small></h2>
+<div class="fsm">
+  <span class="st">INGESTED</span><span class="arr">→<small>preflight</small></span>
+  <span class="st">READY</span><span class="arr">→<small>cover</small></span>
+  <span class="st">COVER_WAIT</span><span class="arr">→<small>G1자동</small></span>
+  <span class="st">COVER_OK</span><span class="arr">→<small>align</small></span>
+  <span class="st">SUBBED</span><span class="arr">→<small>encode</small></span>
+  <span class="st">ENCODED</span><span class="arr">→<small>G2 10/10</small></span>
+  <span class="st">APPROVED</span><span class="arr">→<small>슬롯·캡</small></span>
+  <span class="st up">UPLOADED</span><span class="arr">→<small>+1일</small></span>
+  <span class="st">SHORTS_QUEUED</span><span class="arr">→<small>슬롯</small></span>
+  <span class="st up">SHORTS_UP</span><span class="arr">→<small>스팟체크</small></span>
+  <span class="st done">DONE</span>
+</div>
+<div class="holds"><b>HOLD 3종 (사람 접점):</b> HOLD_IDENTITY (preflight 불일치) · HOLD_COVER (scene 2연속) · HOLD_QC (G2 실패) — CS 재가 시 직전 상태 복귀</div>
+<div class="fsm-note">동시성: encode 전역 1개 직렬, 그 외 트랙 간 병렬 · 발행은 캡 절대우선 — APPROVED 적체 허용 · 대장 세션 무관 (state.json 영속)</div>
+
+<!-- ④ 판단 장부 -->
+<h2>④ 대장 판단장부 → 3줄 보고 <small>"왜?"가 사라지는 구조</small></h2>
+<div class="ledger">decision_log.jsonl (모든 결정 = 근거 필수)
+{"t":"07-04 09:00","<span class="k">결정</span>":"bomnal 발행","<span class="k">근거</span>":["G2 10/10","오늘 발행 0건&lt;캡1","FIFO 선두"],"<span class="k">참조</span>":"ledger#12"}
+{"t":"07-04 09:00","<span class="k">결정</span>":"radio 보류","<span class="k">근거</span>":["HOLD_COVER","scene 2연속 FAIL 07-03"],"<span class="k">참조</span>":"gate1#radio-7"}</div>
+<div class="brief"><b>[HADES 0704 brief]</b> 발행: bomnal(본편). 진행: owol encode 중(잔여 ~12분).<br>보류: radio HOLD_COVER(재가 대기). 이상: 없음. 재고: 숏츠 3건.</div>
+
+<!-- ⑤ 모델 배치 -->
+<h2>⑤ 부하별 모델 전원 배치표 <small>v2.1 정정 — 루프 내 LLM 3자리, 부하 10 전원 코드</small></h2>
+<table>
+  <tr><th>#</th><th>부하</th><th>자리</th><th>모델</th><th>근거</th></tr>
+  <tr><td class="c">1</td><td>대장 hades_loop</td><td>디스패치·장부·brief</td><td class="c">코드</td><td class="why">판단=상태전이표, LLM 불필요</td></tr>
+  <tr><td class="c">2</td><td>preflight</td><td>md5·줄수·폰트</td><td class="c">코드</td><td class="why">기계 대조</td></tr>
+  <tr><td class="c">3</td><td>cover_smith</td><td>배경 생성</td><td class="c">fal FLUX.2 pro</td><td class="why">기확정 · v3 3-layer</td></tr>
+  <tr><td class="c">4</td><td>gate1 tone_check</td><td>히스토그램</td><td class="c">코드</td><td class="why">수치 판정</td></tr>
+  <tr><td class="c">5</td><td>gate1 scene_check</td><td>시각 판단</td><td class="c" style="color:var(--gold)">Sonnet 4.6 vision</td><td class="why">앵커·모순·얼굴텍스트 — $0.15/콜 실측</td></tr>
+  <tr><td class="c">6</td><td>align_sub</td><td>정렬+ASS</td><td class="c">코드 (MMS_FA 로컬)</td><td class="why">CTC forced-align, LLM 아님</td></tr>
+  <tr><td class="c">7</td><td>encode</td><td>렌더+검수10종 (+BGM 오버레이)</td><td class="c">코드 (ffmpeg)</td><td class="why">결정론 · CRF16 표준</td></tr>
+  <tr><td class="c">8</td><td>make_shorts</td><td>세로 전용렌더</td><td class="c">코드 (ffmpeg)</td><td class="why">결정론 · 0~32s</td></tr>
+  <tr><td class="c">9</td><td>upload_scheduler</td><td>캡·원장·업로드</td><td class="c">코드</td><td class="why">규칙 집행 · 멱등</td></tr>
+  <tr><td class="c">10</td><td>meta_gen</td><td>곡별 설명문</td><td class="c" style="color:var(--azure)">Haiku 4.5 → 미달 시 Sonnet 승급</td><td class="why">초벌 Haiku · 직전 발행분과 중복도 기준 미달 시 Sonnet 재생성 (비진정성 방어 신호)</td></tr>
+  <tr><td class="c">11</td><td>watchdog 감시병</td><td>장애 감시</td><td class="c">코드</td><td class="why">임계값 감시 · STALL 신호</td></tr>
+  <tr><td class="c">12</td><td>courier 전령</td><td>brief·HOLD 폰 발송 + 재가 수신</td><td class="c">코드 (Telegram Bot API)</td><td class="why">v2.3 신규 — 프리뷰(Channels) 비의존 순수 HTTP. 폰에서 HOLD 재가 가능 → 인간 접점의 위치 제약 해소</td></tr>
+  <tr><td class="c">13</td><td>auditor 암행어사</td><td>발행물 검열</td><td class="c" style="color:var(--gold)">Sonnet 4.6 (vision 포함)</td><td class="why"><b style="color:var(--red)">v2.1 정정</b> — 검열자 ≥ 피검열자. G1 판단이 Sonnet인데 암행이 Haiku면 하급자가 상급자를 감사하는 꼴. 썸네일 실물 대조에 vision 필수. 5건당 1콜이라 비용 무시 수준</td></tr>
+  <tr><td class="c">14</td><td>헌병 hooks 3종</td><td>차단</td><td class="c">코드 (exit-2)</td><td class="why">cover_gate · secret_guard · danger_guard</td></tr>
+  <tr><td class="c">—</td><td>CS 네비게이터</td><td>기준·재가·설계</td><td class="c" style="color:var(--azure)">Opus급 (채팅)</td><td class="why">루프 밖 — 루프에 미투입</td></tr>
+</table>
+<div class="fsm-note" style="margin-top:8px">배치 원칙: 시각/품질 판단 = <b style="color:var(--gold)">Sonnet</b> · 텍스트 초벌 = <b style="color:var(--azure)">Haiku(승급형)</b> · 결정·감시·집행 = <b style="color:var(--mint)">코드</b>. 루프 내 LLM은 5(scene)·10(meta)·13(암행) 세 자리뿐 — 부하 14 중 11 코드.</div>
+
+
+<!-- ⑥.5 현재 트랙 실상태 대입 -->
+<h2>⑦ 현재 트랙 실상태 대입 <small>2026-07-03 시점 — 이 아키텍처의 상태 기계에 그대로 매핑</small></h2>
+<table>
+  <tr><th>트랙</th><th>v2.3 상태</th><th>다음 전이</th><th>비고</th></tr>
+  <tr><td>geureoke</td><td class="c" style="color:var(--mint)">DONE</td><td>—</td><td class="why">oeWC8JtWDTs 공개 · 숏츠 재고 후보</td></tr>
+  <tr><td>아무말도</td><td class="c" style="color:var(--gold)">UPLOADED</td><td>SHORTS_QUEUED (make_shorts 빌드 후)</td><td class="why">7/3 스케줄러 자동발행</td></tr>
+  <tr><td>songdo</td><td class="c" style="color:var(--gold)">UPLOADED</td><td>SHORTS_QUEUED</td><td class="why">수동발행 → 원장 백필 커밋 진행 · Studio 공시·설명 확인 잔여</td></tr>
+  <tr><td>bomnal</td><td class="c" style="color:var(--azure)">APPROVED*</td><td>내일 슬롯 → UPLOADED</td><td class="why">*1.15 재렌더 완료 · 덮어쓰기 검증(cmp) 1건 잔여 · G2 10/10</td></tr>
+  <tr><td>okryeon</td><td class="c" style="color:var(--azure)">APPROVED</td><td>bomnal 다음 슬롯</td><td class="why">무인검증 G2 9/9 통과분</td></tr>
+  <tr><td>owol</td><td class="c">READY 직전</td><td>가사파일 실존확인 → 무인 런</td><td class="why"><b style="color:var(--gold)">첫 0-touch 증명 런</b> · 앵커 L1/L2/L21/L22</td></tr>
+  <tr><td>radio</td><td class="c" style="color:var(--red)">HOLD_COVER類</td><td>bgm피벗 완료 → 재렌더 → G1 재승인</td><td class="why">publish_hold · 루프오버레이 재구조 중</td></tr>
+  <tr><td>donghae · geoul_oneul</td><td class="c" style="color:var(--mint)">DONE/CLOSED</td><td>—</td><td class="why">geoul_oneul 골든 불가침</td></tr>
+  <tr><td>gueup · ganda</td><td class="c">INGESTED 전</td><td>preflight부터 신규 체인 적용</td><td class="why">ganda = 추모 프레이밍 전용 (네비게이터 직접)</td></tr>
+</table>
+<div class="fsm-note">판독: 발행재고 = APPROVED 2(bomnal·okryeon) + 숏츠후보 3(geureoke·아무말도·songdo) → 교차발행 시 <b style="color:var(--gold)">5일치 큐 확보</b>. 신규 체인(preflight~courier)은 gueup부터 완전 적용, 기존 트랙은 현행 체인으로 소진.</div>
+
+<!-- ⑥ 빌드 로드맵 -->
+<h2>⑧ 빌드 로드맵 <small>의존 순서 고정 — 대장은 병사 없이 못 선다</small></h2>
+<div class="road">
+  <div class="ph now"><div class="num">지금</div><div class="nm">진행분 마감</div><div class="dep">봄날 검증→발행<br>bgm피벗→radio</div></div>
+  <div class="ph"><div class="num">②</div><div class="nm">owol 무인 런</div><div class="dep">현행 체인 증명<br>재설계 선행 금지</div></div>
+  <div class="ph"><div class="num">③</div><div class="nm">preflight</div><div class="dep">P0 · 반나절<br>사건 재발 차단</div></div>
+  <div class="ph"><div class="num">④</div><div class="nm">scheduler</div><div class="dep">P0 · 이전까지<br>발행은 수동</div></div>
+  <div class="ph"><div class="num">⑤⑥</div><div class="nm">대장+감시+전령</div><div class="dep">③④ 완성 후 조립<br>courier 동주(brief 수신처)</div></div>
+  <div class="ph"><div class="num">⑦</div><div class="nm">make_shorts</div><div class="dep">완료작 3곡 즉시<br>재고→교차발행</div></div>
+  <div class="ph"><div class="num">⑧</div><div class="nm">auditor</div><div class="dep">발행 5건 누적<br>시점부터 실효</div></div>
+  <div class="ph"><div class="num">후속</div><div class="nm">Threads</div><div class="dep">threads_post Phase A<br><b style="color:var(--red)">레포 OneDrive 밖 이전(C:\hades)</b> — 배치 전 필수</div></div>
+</div>
+
+<div class="legend">
+  <span class="l-code">코드 (LLM 없음)</span>
+  <span class="l-sonnet">Sonnet 4.6</span>
+  <span class="l-haiku">Haiku 4.5</span>
+  <span class="l-fal">fal FLUX.2</span>
+  <span class="l-gate">게이트 ◆</span>
+  <span class="l-hold">HOLD 발원지</span>
+</div>
+
+</div>
+</body>
+</html>
