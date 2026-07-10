@@ -42,13 +42,13 @@ Navigator discipline (recorded failures — do not repeat):
 | CS 네비게이터 | standards·design·exceptions | Claude chat (Opus-class), outside loop | — |
 | 대장 hades_loop.py | state machine·dispatch·1/day cap·HOLD·brief | code | **NOT BUILT** |
 | 전령 courier.py | Telegram sendMessage (brief/HOLD) + getUpdates polling (phone approvals) | code | **NOT BUILT** |
-| preflight.py | md5+duration ↔ FINGERPRINTS, lyric line counts, font | code | **NOT BUILT (P0)** |
+| preflight.py | md5+duration ↔ FINGERPRINTS, lyric line counts, font | code (CLI --track/--all/--register) | **live (2026-07-09; 13곡 지문 검증, donghae KO/EN 애드립 불일치 포착)** |
 | cover_smith | fal_bg v3 + cover_render --bg composite | code (bg = fal FLUX.2 pro) | live |
 | gate1_verify | tone_check histogram + scene_check + composite integrity → .cover_ok | code + LLM below | live |
 | **scene_check** | Gate 1 visual judgment (lyric-anchor consistency, no faces/text) | **Sonnet 4.6 vision** (headless) | live |
 | align_sub | MMS_FA + dual ASS | code | live |
 | encode | CRF16 render + ffprobe 9 items + **item 10: render date ≥ spec date** | code | live (item 10 new) |
-| make_shorts v2 | dedicated vertical re-render 1080×1920, 0–32s, shorts-only ASS | code | **NOT BUILT** |
+| make_shorts v2 | dedicated vertical re-render 1080×1920, **clip 20–40s (chorus-hook-priority: shortest length that fully captures the chorus hook; no forced extension); chorus auto-detect min-length param = 20s**, shorts-only ASS | code (portable, stdlib+ffmpeg) | **live (amumaldo proven: 56.01–82.43=26.4s, Gate2 10/10)** |
 | upload_scheduler | cadence cap·ledger·main↔shorts alternation·disclosure | code | **live (geureoke proven)** |
 | **meta_gen** | per-track description/tags | **Haiku 4.5 → Sonnet escalation** on duplication threshold | not built |
 | watchdog | stall/orphan-lock/claude-p-timeout monitoring | code | not built |
@@ -128,6 +128,11 @@ failures → HOLD_COVER + Telegram notification.
   raise bg resolution. Tuning pending.
 
 ## 5. TECHNICAL STANDARDS (confirmed — no change without separate sign-off)
+- **fal cover models: text2img backgrounds stay FLUX.2 pro (`fal-ai/flux-2-pro` / `.../edit`).
+  EXCEPTION — img2img with strength control uses FLUX.1 dev (`fal-ai/flux/dev/image-to-image`),
+  because flux-2-pro/edit does not expose a `strength` parameter. Applied to kkotboda (꽃보다)
+  person-cover img2img (Navigator-approved 2026-07-08). fal_bg.py: `--input-image/--strength`,
+  MODEL_IMG2IMG. Source image is fal-upload-only; local original preserved; enable_safety_checker=False.**
 - Video: libx264 · CRF 16 · preset medium · 1-pass · 2560×1440 · 30fps
 - Audio: AAC 48kHz ~380k · Color: H.264 High · yuv420p · BT.709 tv · moov@front
 - Subtitles: Malgun Gothic · **subtitle.scale = 1.15** (base 110 → KO 126 / EN 103,
@@ -147,14 +152,14 @@ failures → HOLD_COVER + Telegram notification.
 
 | Track | Slug | Type | State |
 |---|---|---|---|
-| 그렇게 지나간다 | geureoke | vocal | **UPLOADED via scheduler (first auto upload), video oeWC8JtWDTs, unlisted — public-visibility decision pending** |
+| 그렇게 지나간다 | geureoke | vocal | **PUBLIC — verified via YouTube API 2026-07-07 (privacyStatus=public, madeForKids=false), video oeWC8JtWDTs. Prior "unlisted/pending" note was stale; decision resolved, no action.** |
 | 송도유원지 | songdo | vocal | Uploaded manually, ledger backfilled, first scale=1.15 render, fal composite. **Pending: Studio 합성콘텐츠 disclosure toggle + unique description check (web UI, reina2hj account)** |
-| 아무말도 | amumaldo | vocal | Rendered, PC pass. **Upload status CONFLICTED in records (auto-uploaded 7-03 vs pending) — verify against upload_ledger before any action** |
-| 봄날 | bomnal | vocal | Re-rendered 2026-07-03 17:16 (scale 1.15, KO126/EN103, 62,515,600B). Awaiting scheduled upload. cmp byte-check old-vs-new still pending |
-| 동해로 | donghae | vocal | fal-composited render exists. **G2 item 10 check pending: render date ≥ spec date — confirm before publication** |
+| 아무말도 | amumaldo | vocal | Rendered, PC pass, cover confirmed + gate1 승인 (ce448fa). **PUBLIC 2026-07-08 — scheduled task fired 09:03 (unlisted upload, video LNv510hamvw, ledger n=3), Studio synthetic-content disclosure set, flipped unlisted->public via API 2026-07-08T12:06 (embeddable/publicStatsViewable=true). Prior "un-uploaded/7-03 auto" confusion fully resolved.** |
+| 봄날 | bomnal | vocal | **PUBLIC 2026-07-07 — video Qvs-Npkyub8 (root ledger n=2 + manifest). Uploaded unlisted via scheduler, Studio 합성콘텐츠 disclosure toggled ON, then flipped unlisted->public via API (embeddable=true, publicStatsViewable=true, madeForKids=false). Unique description. Consumed 2026-07-07 cadence slot.** **REPLACEMENT 2026-07-08 — MANUAL UPLOAD BY COMMANDER: new-cover re-render (fal img2img... no, txt2img seed 484202, color_field; Gate1 waive-logged _gate1_verify.log; G2 10/10 PASS; bomnal_dual.mp4 161,090,407B @13:38:58; old 62.5MB backed up _pre_newcover_*). Excluded from auto-schedule (no schtasks). Idempotent ledger block active (upload_scheduler skips any track already in upload_ledger). Ledger n=4 = bomnal manual, video_id TBD (backfill after 선생님 uploads via Studio). Old Qvs-Npkyub8 (n=2) to be retired: private 24h -> delete after new goes public.** NOTE: OAuth scope bug fixed (upload_youtube.py SCOPES upload->force-ssl); upload_scheduler instrumental(_bgm.mp4) + ledger-idempotency guards added. |
+| 동해로 | donghae | vocal | **GATE1 APPROVED 2026-07-07 — new fal bg 328806 (native 2560×1440, tone_check OK: bright141/sat113/warmR-B −64/gray0.24) selected by PM scene_check, composited via cover_render (color_field, title 동해로/To the Sea + Reina), .cover_ok signed sha256 f5e71343. RE-RENDERED 2026-07-07 13:08 with new cover (donghae_dual.mp4 190.7MB, 210.8s), G2 10/10 PASS (incl. item 10 render date ≥ approval date). PUBLISH-READY. SCHEDULED 2026-07-09 09:00 (schtasks HADES_donghae_0709, Interactive-only → PC must be logged in; unlisted staging + ledger + log via _sched_publish_0709.py; unique description written). Public flip needs manual Studio synthetic-content disclosure on 07-09.** |
 | 옥련동 | okryeon | vocal | Lyrics placed (28 KO/EN). Queued as first Gate-1 unmanned-verified track |
 | 그날의 오월 | owol | vocal | Lyrics delivered (31 KO/EN; scene anchor: May park path, solitary figure, NO ocean). **Staged as first fully unattended end-to-end proving run** |
-| Early Morning Radio | radio | instrumental | Publish HOLD — BGM motion rebuild (RGBA loop→ffmpeg) + Gate 1 re-approval pending |
+| Early Morning Radio | radio | instrumental | **DONE 2026-07-07 — BGM motion v1 built (12s seamless qtrle loop, particles+notes, bpm72, glow omitted), Gate1 PASS (.cover_ok 6906708716e0), CRF16 encoded radio_bgm.mp4 (128MB, 194.4s), Gate2 PASS (30fps per config/CONTEXT §5; CLAUDE.md §4.1 "60fps" is a stale line — flag for charter fix). publish_hold lifted. Fixed bgm_motion._pipe_qtrle stderr-PIPE deadlock + upload_scheduler instrumental (_bgm.mp4) naming. GATE1 FORMALLY RE-RUN 2026-07-08: tone_check PASS + scene_check.py actually executed on bg-only (raw FAIL on no_face_no_text = radio's diegetic brand/dial text) -> Navigator WAIVED (diegetic object lettering, logged _gate1_verify.log + decision_log.jsonl), .cover_ok re-issued 11:48 (same hash). Gate2 10/10 PASS (item10: render after original approval; re-issue same-hash). RE-SCHEDULED 2026-07-10 09:00 (HADES_radio_0710, Interactive-only). Public flip needs manual Studio disclosure 07-10.** |
 | 마지막 순간 | majimak | instrumental | Design confirmed (120 BPM, piano/strings lead, soft brass final hook only, Dm→F). Awaiting Suno generation |
 | 간다 말했다 | ganda | vocal | HOLD — memorial protocol (§3) |
 | 물길 | mulgil | vocal | Lyrics confirmed (hook option B), contemporary acoustic indie folk. Awaiting Suno |
@@ -163,6 +168,8 @@ failures → HOLD_COVER + Telegram notification.
 | 거울속의 오늘 | geoul_oneul | vocal | CLOSED golden reference |
 | 변함없는 노을 · 그림자 (+legacy pool) | — | vocal | Old 1080p exists, redo needed, unpiped |
 | 관람차 | gwanramcha | — | CANCELLED |
+| 꽃보다 오렌지 보다 너 | kkotboda | vocal | **DONE 2026-07-08 — Ghibli-watercolor img2img PERSON cover (FLUX.1 dev exception `fal-ai/flux/dev/image-to-image`, drama93b brown-hair, 세로→16:9 canvas-composite bg_kkotboda.png). Gate1 PASS (.cover_ok da78f73a; scene_check allow_person). Lyrics KO/EN 18 each (EN=PM translation), MMS_FA align, CRF16 kkotboda_dual.mp4 (62,104,086B / 204.8s), Gate2 9+1 PASS (dual subs KO126/EN103 verified). Audio md5 4f412257 (FINGERPRINTS). SCHEDULED 2026-07-11 09:00 (HADES_kkotboda_0711, unlisted staging). Code: cover_render+kkotboda, scene_check+allow_person, fal_bg img2img.** |
+| 그날 | geunal | vocal | **커버 DONE 2026-07-08 — DARK CYBERPUNK AI bg (txt2img FLUX.2 pro, seed 30401 a.jpg, 2560×1440, NOT photoreal). Gate1 PASS (.cover_ok 28199d6b) with 2 Navigator waives: tone_check FAIL (dark, §4 bright-blue mandate deliberately overridden) + scene_check no_face_no_text FAIL (diegetic cyberpunk neon signage). Audio audio.mp3 (md5 94c72b2c, 169.24s), FINGERPRINTS 등재, config.yaml. Lyrics KO/EN 28 each (Korean-sung — KO align basis; EN Navigator-provided, V1 +1 line to match KO). MMS_FA align (28 lines, real not fallback), CRF16 geunal_dual.mp4 (136,001,247B / 169.24s), Gate2 9+1 PASS (dual KO-top/EN-below verified @t=12s). SCHEDULED 2026-07-12 09:00 (HADES_geunal_0712, unlisted staging).** |
 
 Inventory scale: ~25–30 tracks ready overall (FINGERPRINTS.md), 100+ long-term.
 Catalog harmonic rotation: three grammar families (functional / modal vamp / pedal point)
@@ -208,6 +215,9 @@ channel revenue (decision 2026-07-03).
 - YouTube: `reina2hj@gmail.com`, handle `@reinamusic_0217` — firewalled from business
   account `foob0201@gmail.com` (cross-account ToS cascade defense). OAuth client_secret
   reused from TAEYEON ERP GCP project, token cached.
+- Instagram: Reina creator account CREATED (2026-07-09), handle `@reinamusic_0217`
+  (unified with YouTube handle). Account type: Creator (Business 전환 가능 — 릴스 빌드 시
+  Graph API 호환 재확인 항목). Bio link = https://youtube.com/@reinamusic_0217
 - Upload quota (corrected 2026-07): ~100/day dedicated bucket — quota is NOT the constraint;
   **cadence/pattern is** (channel-level inauthentic-content enforcement). Honest synthetic-
   content disclosure per upload; unique human-written description per video.
@@ -217,3 +227,9 @@ channel revenue (decision 2026-07-03).
   powercfg sleep-off) NOT YET DONE — must be performed physically at office.
 - Monetization path: YPP (1,000 subs + 4,000 watch-hrs) → DistroKid EP/album bundles.
   Korean DSPs on hold.
+
+---
+
+## 10. SESSION UPDATE 2026-07-09 (2nd)
+완료 처리:
+- 4) IG 계정 세팅 완료 — 크리에이터 계정 생성·핸들 @reinamusic_0217 확정 (07-09)
