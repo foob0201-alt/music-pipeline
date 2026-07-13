@@ -26,6 +26,10 @@ align:
   compute_type: int8               # cuda면 float16
   language: ko
   offset_ms: 0                     # 자막 전체 +/- 미세보정
+  # CPU 머신 표준(GPU 없음): MMS_FA 풀패스 추론이 오래 걸림 — 정렬 실행 타임아웃 하한.
+  # 규칙(2026-07-13 확정): max(audio_sec * 6, 1200s). 재발 방지(owol 첫 런 560s 중도종료).
+  cpu_timeout_mult: 6
+  cpu_timeout_floor_sec: 1200
 
 subtitle:
   modes: [dual]                    # ko / en / dual (모드당 영상 1개)

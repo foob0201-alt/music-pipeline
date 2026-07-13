@@ -341,3 +341,27 @@ channel revenue (decision 2026-07-03).
 ### 지표
 - `ypp_tracker` 지역(Analytics) 확장 — **yt-analytics.readonly 스코프 미보유로 미연동**
   (재인증 + API 사용설정 필요). 현재: 구독 7/500 · 공개영상 19.
+
+---
+
+## 13. SESSION 2026-07-13 (owol 무인 런 + Analytics 연동)
+
+### owol 무인 실증 런 완주 — 첫 무인 end-to-end (이정표)
+- 「그날의 오월」(owol) — 사령관 정본 가사 31행(1:1). **전 단계 자동판정 PASS:**
+  cover_smith(fal 3후보 tone 3/3) → Gate1(scene_check 3/3, 오월 산책로+미스트, .cover_ok)
+  → align(MMS_FA 31줄) → subtitle(ASS 31/31) → encode(CRF16, **Gate2 9/9 PASS**)
+  → **public 업로드** `OUb-2MJHyYo` (ko default + en localization "That Day in May - Reina").
+- ※ 07-13 총 2건(radio_shorts 자동발행 + owol 메인) — 정상 캐던스(1일1건) 대비 1건 초과.
+  사령관 "오늘 공개 슬롯" 명시 지시로 집행. 합성콘텐츠 고지는 Studio 확인 필요.
+
+### align CPU 타임아웃 표준 (재발 방지)
+- config.yaml align: `cpu_timeout_mult: 6` / `cpu_timeout_floor_sec: 1200`
+  = **max(audio_sec×6, 1200s)**. owol 첫 런 560s 중도종료 사고 방지(GPU 없음, CPU 추론 장시간).
+
+### YouTube Analytics 연동
+- 재인증(force-ssl + **yt-analytics.readonly**) 완료. `ypp_tracker` 지역 데이터 라이브.
+- 90일 실측: **KR 1,837뷰(100%) · 해외 유입 0.0%** (글로벌 메타 적용 초기). 구독 7/500.
+
+### 채널 정합
+- donghae `TW4-OXXoBeU` 표준화(「동해로」/ To the Sea - Reina, ko+en, 핸들오타 제거) 채널 확인.
+- 비표준 3건 비공개 재확인 — `InpBTqQ3Vz4`(지난 세션 전환 미지속) 재전환 private 완료.

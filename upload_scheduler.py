@@ -94,8 +94,11 @@ def record_manifest(mani_path: Path, rec: dict) -> None:
     os.replace(tmp, mani_path)
 
 
-def insert_video(svc, title, description, tags, category_id, privacy, video: Path) -> dict:
-    """videos.insert(resumable) → 응답 dict(id 포함) 반환."""
+def insert_video(svc, title, description, tags, category_id, privacy, video: Path,
+                 *, localizations: dict | None = None) -> dict:
+    """videos.insert(resumable) → 응답 dict(id 포함) 반환.
+    글로벌 메타 표준: defaultLanguage/defaultAudioLanguage="ko" 항상 설정.
+    localizations={"en":{"title","description"}} 지정 시 함께 등록(part 확장)."""
     from googleapiclient.http import MediaFileUpload
     body = {
         "snippet": {
@@ -103,14 +106,20 @@ def insert_video(svc, title, description, tags, category_id, privacy, video: Pat
             "description": description[:5000],
             "tags": tags,
             "categoryId": str(category_id),
+            "defaultLanguage": "ko",
+            "defaultAudioLanguage": "ko",
         },
         "status": {
             "privacyStatus": privacy,
             "selfDeclaredMadeForKids": False,
         },
     }
+    part = "snippet,status"
+    if localizations:
+        body["localizations"] = localizations
+        part = "snippet,status,localizations"
     media = MediaFileUpload(str(video), chunksize=-1, resumable=True, mimetype="video/mp4")
-    req = svc.videos().insert(part="snippet,status", body=body, media_body=media)
+    req = svc.videos().insert(part=part, body=body, media_body=media)
     resp = None
     while resp is None:
         status, resp = req.next_chunk()
@@ -142,16 +151,18 @@ def main(argv=None) -> int:
     slug = args.track
     tdir = ROOT / "tracks" / slug
     out = tdir / "out"
-    video = out / f"{slug}_dual.mp4"
     desc_file = out / "youtube_description.txt"
     mani_path = out / "upload_manifest.json"
+
+    cfg = load_config("config.yaml", str(tdir / "config.yaml"))
+    # instrumental 은 산출물명이 <slug>_bgm.mp4(자막 없음), 그 외 vocal 은 <slug>_dual.mp4
+    video = out / (f"{slug}_bgm.mp4" if cfg.get("mode") == "instrumental" else f"{slug}_dual.mp4")
 
     for p in (video, desc_file):
         if not p.exists():
             log.error("필수 파일 없음: %s", p)
             return 2
 
-    cfg = load_config("config.yaml", str(tdir / "config.yaml"))
     yt = cfg.get("youtube", {})
     privacy = args.privacy or yt.get("privacy", "unlisted")
     category_id = yt.get("category_id", "10")
@@ -178,6 +189,20 @@ def main(argv=None) -> int:
                           "description_chars": len(description), "video": str(video)},
                          ensure_ascii=False, indent=2))
         return 0
+
+    # 멱등 차단: upload_ledger.json 에 이미 기록된 트랙은 재업로드하지 않는다(중복 방지).
+    # 수동 발행(uploaded_via=manual) 트랙 포함 — Commander 직접 발행분을 스케줄러가 덮지 않도록.
+    ledger_p = ROOT / "upload_ledger.json"
+    if ledger_p.exists():
+        try:
+            _led = json.loads(ledger_p.read_text(encoding="utf-8"))
+            _hit = next((e for e in _led.get("entries", []) if e.get("track") == slug), None)
+        except Exception:                              # noqa: BLE001 — 깨진 원장은 차단하지 않음
+            _hit = None
+        if _hit is not None:
+            log.error("멱등 차단: '%s' 는 upload_ledger 에 이미 기록됨(via=%s, video_id=%s) — 재업로드 스킵.",
+                      slug, _hit.get("uploaded_via"), _hit.get("video_id"))
+            return 5
 
     # 1) OAuth
     cs = yt.get("client_secret")

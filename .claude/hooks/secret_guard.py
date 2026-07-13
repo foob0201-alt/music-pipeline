@@ -35,7 +35,8 @@ PATH_RE = re.compile(
 #     (os.environ["FAL_KEY"] 같은 정상 코드/모델 id "fal-ai/..."는 통과).
 VALUE_RE = re.compile(
     r"([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:[0-9a-f]{32,}"
-    r"|-----BEGIN[ A-Z]*PRIVATE KEY-----)",
+    r"|-----BEGIN[ A-Z]*PRIVATE KEY-----"
+    r"|EAA[0-9A-Za-z]{50,})",     # Meta/IG Graph API access token 값(IG_ACCESS_TOKEN). 이름은 미차단.
     re.IGNORECASE,
 )
 

@@ -1,5 +1,5 @@
 {
-  "count": 20,
+  "count": 21,
   "entries": [
     {
       "n": 1,
@@ -219,9 +219,9 @@
       "video_id": "InpBTqQ3Vz4",
       "uploaded_via": "channel-recon-backfill",
       "date": "2026-07-01",
-      "privacy": "public",
+      "privacy": "private",
       "title": "그렇게 지나간다",
-      "note": "구 수동 업로드(비표준 제목) — 그렇게지나간다 중복. 조치 대기."
+      "note": "구 수동 업로드(비표준 제목) — 그렇게지나간다 중복. 조치 대기. | 비공개 전환 07-13(비표준 중복 정리, 삭제 안 함)."
     },
     {
       "n": 18,
@@ -233,9 +233,9 @@
       "video_id": "8OppJiu2yzw",
       "uploaded_via": "channel-recon-backfill",
       "date": "2026-07-08",
-      "privacy": "public",
+      "privacy": "private",
       "title": "봄날 _ 그방",
-      "note": "구 수동 업로드(비표준 제목) — 봄날 중복. 조치 대기."
+      "note": "구 수동 업로드(비표준 제목) — 봄날 중복. 조치 대기. | 비공개 전환 07-13(비표준 중복 정리, 삭제 안 함)."
     },
     {
       "n": 19,
@@ -247,14 +247,14 @@
       "video_id": "zAWY-8JZSnU",
       "uploaded_via": "channel-recon-backfill",
       "date": "2026-07-08",
-      "privacy": "public",
+      "privacy": "private",
       "title": "early morning radio",
-      "note": "구 수동 업로드(비표준 제목) — 새벽라디오 중복. 조치 대기."
+      "note": "구 수동 업로드(비표준 제목) — 새벽라디오 중복. 조치 대기. | 비공개 전환 07-13(비표준 중복 정리, 삭제 안 함)."
     },
     {
       "n": 20,
       "track": "donghae",
-      "ver": "legacy",
+      "ver": "main",
       "url": "https://youtu.be/TW4-OXXoBeU",
       "spot_check": false,
       "ts": "2026-07-09T00:00:00+09:00",
@@ -262,8 +262,22 @@
       "uploaded_via": "channel-recon-backfill",
       "date": "2026-07-09",
       "privacy": "public",
-      "title": "@동해로 @reinamusic_2017",
-      "note": "제목 표준 이탈 + 핸들 오타(@reinamusic_2017≠0217). 동해로 정규 메인 미업로드. 조치 대기."
+      "title": "「동해로」 / To the Sea - Reina",
+      "note": "제목 표준화+글로벌메타(ko+en) 적용 07-13. 동해로 정규 메인 확정(핸들오타 제거). 길이 211s=로컬 render 일치."
+    },
+    {
+      "n": 21,
+      "track": "owol",
+      "ver": "dual",
+      "url": "https://youtu.be/OUb-2MJHyYo",
+      "spot_check": false,
+      "ts": "2026-07-13T16:53:16+09:00",
+      "video_id": "OUb-2MJHyYo",
+      "uploaded_via": "unmanned-run",
+      "date": "2026-07-13",
+      "privacy": "public",
+      "title": "「그날의 오월」 / That Day in May - Reina",
+      "note": "owol 무인 실증 런 (cover_smith→Gate1→align→subtitle→encode→Gate2 전부 자동판정 PASS). public 발행, ko+en localization. 합성콘텐츠 고지는 Studio에서 Commander 확인 필요."
     }
   ]
 }

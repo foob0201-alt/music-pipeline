@@ -53,6 +53,24 @@ TRACKS = {
         "title_latin": "To the Sea",    # KO 아래 EN 부제(작게, 같은 좌상단 블록)
         "motif": None,                  # 모티프 생략(배경이 강함)
     },
+    "kkotboda": {                       # 꽃보다 오렌지 보다 너 — 지브리 수채 인물 커버(img2img, drama93b)
+        "style": "color_field",
+        "title_ko": "꽃보다 오렌지 보다 너",
+        "title_latin": "More Than Flowers",
+        "motif": None,                  # 인물 아트가 강함 — 모티프 없음
+    },
+    "geunal": {                         # 그날 — 다크 사이버펑크 AI배경(txt2img, §4 밝은톤 오버라이드)
+        "style": "color_field",
+        "title_ko": "그날",
+        "title_latin": "That Day",
+        "motif": None,
+    },
+    "owol": {                           # 그날의 오월 — 오월 올림픽공원 햇살 산책로(사진배경, light rain mist)
+        "style": "color_field",
+        "title_ko": "그날의 오월",
+        "title_latin": "That Day in May",
+        "motif": None,
+    },
     "geureoke": {
         "style": "color_field",
         "title_ko": "그렇게 지나간다",
