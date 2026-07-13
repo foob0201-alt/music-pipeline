@@ -252,3 +252,37 @@ channel revenue (decision 2026-07-03).
 - 5건 소진 후 예외 종료 → 정상 캐던스(1일 1건) 복귀. 오늘(07-10)은 추가 발행 없음(캡 초과 확인).
 - 기발행분 amumaldo·kkotboda·geunal 숏츠는 v1 그대로(미변경). 구 예약 스크립트 8개 정리.
 - 합성콘텐츠 고지는 Data API 설정 불가 — public 발행 후 Studio 고지는 Commander 책임.
+
+---
+
+## SESSION UPDATE 2026-07-10
+
+### 완료
+- amumaldo/kkotboda/geunal 숏츠 발행 (당일 1일2건 예외 중 4건 집행 — Navigator 지시 오류, 재발 방지 기록)
+- unlisted 6건(메인 radio·kkotboda·geunal, 숏츠 amumaldo·kkotboda·geunal) → public 전환 완료
+  (재업로드 없음, privacyStatus만 변경, 조회수/URL 유지)
+  ※ 합성콘텐츠 고지 토글은 API 확인 불가 — 사전 완료 전제. 미완료 시 Studio 직접 확인 필요
+- 숏츠 EN 자막 잘림 수정: 좌우 마진 60→96px, 2줄 자동 줄바꿈 (make_shorts.py 기본값 반영)
+- 숏츠 제목 오버레이 신규: 상단 세이프존, Malgun Gothic Bold 64px, 흰+아웃라인, 0.4s 페이드인
+  + 하단 좌측 @reinamusic_0217 핸들 (v2 사양 확정, 기본값 반영)
+- 미발행 숏츠 5곡(geureoke·songdo·bomnal·donghae·radio) 신규 사양 전량 재렌더 완료.
+  기발행 3곡(amumaldo·kkotboda·geunal)은 구버전 유지, 재작업 없음
+
+### 미결 — 다음 세션 최우선
+1. 신규 숏츠 5건 발행 확인: 07-11 geureoke·songdo / 07-12 bomnal·donghae / 07-13 radio
+   (1일2건 예외 소진 후 1일1건 복귀)
+   > (Executor 검증 2026-07-13: 5건 전량 public 발행 확인 — geureoke uAdqXyCI2bA · songdo PRUPCNpie-k
+   >  · bomnal GnkpE752a1w · donghae tLwx83-uPGQ · radio Emi99FTLotA. 작업 스케줄러 3일 정상 발화.)
+2. bomnal 메인 — 구버전(public, 조회수 보유) vs 신커버 재렌더본(Qvs-Npkyub8) 교체 여부 미확정
+   (교체 시 조회수/좋아요 리셋 인지 필요)
+3. IG 연동 — Meta 전화인증(SMS) 실패로 보류. 재시도 또는 카드 인증 경로 전환 필요.
+   Facebook 페이지(Reina-music)·IG 크리에이터 계정(@reinamusic_0217) 생성 완료, 연동만 미완
+4. donghae 메인 미업로드 — 07-12 donghae 숏츠 발행 전 메인 업로드 필수 확인
+   > (Executor 검증 2026-07-13: donghae 숏츠는 07-12 public 발행됐으나 donghae 메인은 여전히 미업로드
+   >  — 메인 없이 숏츠만 공개된 상태. 확인 필요.)
+5. 백로그 전수 인벤토리 표 — 계속 이월 (Executor 미보고)
+6. kkotboda·geunal Studio 고지 재확인 — public 전환 전제 항목, 실제 완료 미검증
+7. reels_post.py 설계 — IG 연동 후 착수
+
+### 참고
+- 캐던스 초과(4건) 재발 방지: 발행 앞당김 지시 전, 당일 기예정 건수 선확인을 Navigator 프로세스에 반영
