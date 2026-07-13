@@ -312,3 +312,32 @@ channel revenue (decision 2026-07-03).
 ### 캐던스 규칙 강화
 - **48시간 내 연속(2건+) 업로드 지양** — 임프레션 풀 분산 방지. 정상 캐던스 **1일 1건** 유지.
 - **1일 2건 예외는 향후 재검토**(원칙상 지양; 백로그 소진용 일회성으로만 사용됐고 종료됨).
+
+---
+
+## 12. GLOBAL META & CHANNEL RECON (2026-07-13 확정)
+
+### 글로벌 메타 표준 (P0)
+- **모든 업로드:** `snippet.defaultLanguage="ko"` + `snippet.defaultAudioLanguage="ko"`
+  + `localizations["en"]{title,description}`. EN 제목 = 표준 제목의 " / " 뒤 부분,
+  EN 설명 = youtube_description EN 인트로 + lyrics_en(인스트루멘털은 (Instrumental)).
+- 구현: `upload_scheduler.insert_video`(ko 항상 + localizations 옵션), `hades/localize.py`.
+- **소급 완료:** 기존 **15건**(메인 7 + 숏츠 8) videos.update 성공 15/15.
+  donghae 정규 메인 미업로드 → 16번째 메인 부재.
+
+### 숏츠 표준 수정 (07-13, docs/shorts_multi.md §8)
+- 컷 길이 **30~40초**(자연 가사 단락), 루프 회귀 우선.
+- 해시태그 **3~5개 + 영어 카테고리 1~2 필수**(#koreanmusic/#koreanballad/#kindie/#kpopballad),
+  **#viral·#fyp 금지 유지**.
+- 발행 시각 **±2~3시간 지터**, 3컷째 승격 = **Viewed vs Swiped 75%+ AND 시청률 65%+**.
+- EN 오버레이 = KO 동등 가독성(해외 시드 리텐션).
+
+### 채널 실측 원장 갱신
+- 채널 실제 **19건** ↔ 원장 백필 **+5건**(video_id 전량 일치). 삭제·제목수정 미실행(보고만).
+- **구 중복(조치 대기):** 봄날 `Qvs-Npkyub8`(표준)+`8OppJiu2yzw`(구) / 그렇게지나간다
+  `oeWC8JtWDTs`(표준)+`InpBTqQ3Vz4`(구) / 새벽라디오 `2MR5024HnM8`(표준)+`zAWY-8JZSnU`(구).
+- **동해로 제목 이탈+핸들 오타:** `TW4-OXXoBeU` "@동해로 @reinamusic_2017"(정본 @reinamusic_0217).
+
+### 지표
+- `ypp_tracker` 지역(Analytics) 확장 — **yt-analytics.readonly 스코프 미보유로 미연동**
+  (재인증 + API 사용설정 필요). 현재: 구독 7/500 · 공개영상 19.
