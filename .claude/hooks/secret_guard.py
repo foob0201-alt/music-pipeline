@@ -36,7 +36,11 @@ PATH_RE = re.compile(
 VALUE_RE = re.compile(
     r"([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:[0-9a-f]{32,}"
     r"|-----BEGIN[ A-Z]*PRIVATE KEY-----"
-    r"|EAA[0-9A-Za-z]{50,})",     # Meta/IG Graph API access token 값(IG_ACCESS_TOKEN). 이름은 미차단.
+    r"|EAA[0-9A-Za-z]{50,}"                    # Meta/FB Graph API access token 값
+    r"|IGQ[\w\-]{20,}"                         # IG Basic Display 단기 토큰 값
+    r"|IGAA[\w\-]{20,}"                        # IG API 장기 토큰 값
+    r"|IG_APP_SECRET[\s\"':=]+[0-9a-f]{16,}"   # IG 앱 시크릿(변수명+실제값 결합; %참조%는 미차단)
+    r")",     # 변수명 자체(IG_ACCESS_TOKEN)는 미차단 — %VAR% 참조 curl 작동 보장.
     re.IGNORECASE,
 )
 
