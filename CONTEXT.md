@@ -393,3 +393,19 @@ channel revenue (decision 2026-07-03).
 ### 표준
 - align CPU 타임아웃: `config.yaml` `cpu_timeout_mult:6`/`floor:1200` = max(audio×6,1200s).
 - fal_bg `--skip-tone`(다크 톤 곡 밝은톤 임계 스킵) / `scripts/align_mms.py --chunk-sec`(장곡 청크, 구현 중).
+
+### 숏츠 2건/일 백로그 배포 (2026-07-14 개시)
+- **발행 시각 표준:** 매일 KST **21:00(1건째)/21:30(2건째)** 고정 예약발행(publishAt). **지터 폐기.**
+  `upload_scheduler.publish_at_kst(slot)` + `insert_video(publish_at=)` 지원(예약 시 privacyStatus=private 강제). 커밋 `78c0151`.
+- **리텐션 순위(실측 90일, 평균조회율):** geureoke 71.8 > donghae 65.1 > bomnal 64.5 > amumaldo 60.2 > geunal 54.7 > kkotboda 54.5 > songdo 39.2 (radio 미집계). `ypp_tracker.fetch_video_retention` 신설.
+- **오늘 배포:** amumaldo·geunal **2번째 컷**(2nd chorus, `--which 1`, 36.5s/38.4s). Gate 전항목 PASS(1080×1920·30-40s·KO노랑+EN크림+제목오버레이+핸들·실영상).
+  - **5일간격 규칙 1회 예외**(Navigator 승인): 1차컷 07-10 발행 **4일차**. 상위 3곡(geureoke/donghae/bomnal)은 1차컷 2~3일차라 4일 코호트 상위 2곡 선정.
+  - 예약발행: amumaldo `YP2REEilFgM`(21:00), geunal `iHCGf-G6EGE`(21:30). ledger **n=22·23**.
+- **제목 표준 정정:** 실험 `"가사구절" | 곡명` 폐기 → **채널 표준 `「곡명」/영문 - Reina #Shorts`**(1차컷과 동일). videos.update로 메타만 교체(재렌더 없음), ko+en 제목 동기.
+- **복귀 조건(Navigator):** 신규 컷 리텐션 **75%/65%** 밑 2회 연속 → 1건/일 복귀. 메인 신곡 발행일엔 그날 숏츠 1건으로 감축(메인+숏츠 동일자 금지).
+- **합성콘텐츠 고지:** 두 영상 자동 공개 전 Studio 고지 설정 필요(수동, API 불가).
+
+### ganda 청크 align — 현재 상태(2026-07-14)
+- 밀도-그룹 2-pass 폐기 → **오버랩 청크 포워드(이음새 무결) + 적응 star** 재설계. catastrophic drift(5~14s) **해소**.
+- **owol 회귀 FAIL:** 반복 후렴 5줄 최대 2.2s(±0.3s 초과). 원인=청크 emission 미세차 → CTC 반복경계 tip(내재적, PAD 2/8s 무개선).
+- **PM 권고 = 하이브리드**(≤~220s 풀패스 / 초과만 청크). `게이트 자체 승인 금지`로 **ganda align 착수 보류·결정 대기.** owol 발행본 align.json은 baseline 복원 유지.
