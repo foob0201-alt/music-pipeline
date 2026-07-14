@@ -365,3 +365,31 @@ channel revenue (decision 2026-07-03).
 ### 채널 정합
 - donghae `TW4-OXXoBeU` 표준화(「동해로」/ To the Sea - Reina, ko+en, 핸들오타 제거) 채널 확인.
 - 비표준 3건 비공개 재확인 — `InpBTqQ3Vz4`(지난 세션 전환 미지속) 재전환 private 완료.
+
+---
+
+## 14. SESSION 2026-07-14
+
+### IG 크로스포스트 (결정 변경)
+- **IG 크로스포스트 = 수신 채널로 승격.** 구현 = IG "Facebook에 공유" **자동 토글**(별도 업로드 모듈 없음).
+- 활성 시점 = **IG↔FB 페이지 연결 완료 직후**(릴스 빌드와 무관하게 토글만 선행 가능).
+- **FB 페이지 핸들 오타 `@reinamusic_2017` → `@reinamusic_0217`** 미확인 — 토글 켤 때 함께 처리.
+  (YouTube 쪽 동해로 핸들오타는 07-13에 이미 수정. 이번 건은 **FB 페이지** 핸들.)
+
+### ganda(간다 말했다) — 추모곡, 무인 아님
+- 정본 가사 35행(1:1). KO 1행 "나에게 간다 했다"(EN "He Told Me He Was Going") 추가로 35=35.
+- **커버 확정:** 다크 트와일라잇 도로 소실점(fal skip-tone, A/991329), 「간다 말했다」/ He Told Me He Was Going,
+  scene_check PASS, `.cover_ok`. (밝은톤 tone_check는 이 곡 한정 스킵 — fal_bg `--skip-tone` 신설.)
+- **align OOM:** 258.92s 풀패스 MMS_FA 메모리 부족(1.7GB) → **청크 align 빌드 승인**.
+  요구: 무음경계 컷(고정길이 금지)·청크별 타임스탬프+전역 오프셋 병합·검증·**owol 회귀 ±0.3s**.
+  1차 concat-emission 구현은 회귀 FAIL(경계 불연속 5~9s) → **청크별 독립정렬 2-pass로 재구현 중.**
+
+### 인테이크
+- **salpyeoga(살펴 가)** — onedrive 172.60s = 신규 **댄스록 개사판**("괜찮아 나는 뛰어" 훅).
+  audio+FINGERPRINTS+config, **정본 KO/EN 43행 확정**(1:1). 구 nu-disco판 161.88s는 _incoming_review 보류(삭제 금지).
+- **makes_me_sick_edm(역겨워 Dark EDM)** — audio+FINGERPRINTS(md5 3bdc12f4, 212.48s).
+  ⚠️ **전사 블록** — faster-whisper(av 빌드)·openai-whisper(SSL) 설치 실패. 재시도/오프라인 wheel/가사 직접 대기.
+
+### 표준
+- align CPU 타임아웃: `config.yaml` `cpu_timeout_mult:6`/`floor:1200` = max(audio×6,1200s).
+- fal_bg `--skip-tone`(다크 톤 곡 밝은톤 임계 스킵) / `scripts/align_mms.py --chunk-sec`(장곡 청크, 구현 중).
