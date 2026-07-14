@@ -1,5 +1,5 @@
 {
-  "count": 21,
+  "count": 23,
   "entries": [
     {
       "n": 1,
@@ -278,6 +278,36 @@
       "privacy": "public",
       "title": "「그날의 오월」 / That Day in May - Reina",
       "note": "owol 무인 실증 런 (cover_smith→Gate1→align→subtitle→encode→Gate2 전부 자동판정 PASS). public 발행, ko+en localization. 합성콘텐츠 고지는 Studio에서 Commander 확인 필요."
+    },
+    {
+      "n": 22,
+      "track": "amumaldo_shorts_cut2",
+      "ver": "shorts-v2",
+      "url": "https://youtu.be/YP2REEilFgM",
+      "spot_check": false,
+      "ts": "2026-07-14T19:06:43+09:00",
+      "video_id": "YP2REEilFgM",
+      "uploaded_via": "direct-publishAt-2perday",
+      "date": "2026-07-14",
+      "privacy": "scheduled-public",
+      "publish_at": "2026-07-14T21:00:00+09:00",
+      "title": "\"난 아무말도 하지 않았어\" | 아무말도 - Reina",
+      "note": "2nd cut 백로그 배포. 5일간격 규칙 1회성 예외 승인(Navigator 2026-07-14): 1차컷 07-10 발행 4일차. 4일코호트 리텐션 상위 선정. publishAt 예약발행(21:00/21:30 KST). 합성콘텐츠 고지 Studio 확인 필요(예약 전)."
+    },
+    {
+      "n": 23,
+      "track": "geunal_shorts_cut2",
+      "ver": "shorts-v2",
+      "url": "https://youtu.be/iHCGf-G6EGE",
+      "spot_check": false,
+      "ts": "2026-07-14T19:06:43+09:00",
+      "video_id": "iHCGf-G6EGE",
+      "uploaded_via": "direct-publishAt-2perday",
+      "date": "2026-07-14",
+      "privacy": "scheduled-public",
+      "publish_at": "2026-07-14T21:30:00+09:00",
+      "title": "\"이제 쓰라린 상처가 아무렇지 않아\" | 그날 - Reina",
+      "note": "2nd cut 백로그 배포. 5일간격 규칙 1회성 예외 승인(Navigator 2026-07-14): 1차컷 07-10 발행 4일차. 4일코호트 리텐션 상위 선정. publishAt 예약발행(21:00/21:30 KST). 합성콘텐츠 고지 Studio 확인 필요(예약 전)."
     }
   ]
 }

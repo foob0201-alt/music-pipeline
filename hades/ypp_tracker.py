@@ -79,6 +79,41 @@ def fetch_regions(days: int = 90) -> dict:
                         f"API 사용설정 필요. ({type(e).__name__}: {str(e)[:80]})"}
 
 
+def fetch_video_retention(video_ids: list, days: int = 90) -> dict:
+    """영상별 리텐션(평균 조회율/평균 시청지속) 조회 — 숏츠 리텐션 순위·복귀조건 판정용.
+    Analytics reports.query dimensions=video, filters=video==id1,id2,...(OR, ≤500).
+    ⚠️ 소형 채널·발행 직후엔 데이터 임계 미달로 행이 비거나 지연될 수 있음(우아한 저하)."""
+    try:
+        import datetime as _dt
+        from google.oauth2.credentials import Credentials
+        from googleapiclient.discovery import build
+        creds = Credentials.from_authorized_user_file(TOKEN)
+        ya = build("youtubeAnalytics", "v2", credentials=creds, cache_discovery=False)
+        end = _dt.date.today()
+        start = end - _dt.timedelta(days=days)
+        r = ya.reports().query(
+            ids="channel==MINE", startDate=start.isoformat(), endDate=end.isoformat(),
+            metrics="views,averageViewPercentage,averageViewDuration,estimatedMinutesWatched",
+            dimensions="video", filters="video==" + ",".join(video_ids),
+            sort="-averageViewPercentage", maxResults=200).execute()
+        cols = [c["name"] for c in r.get("columnHeaders", [])]
+        rows = []
+        for row in r.get("rows", []):
+            d = dict(zip(cols, row))
+            rows.append({
+                "video": d.get("video"),
+                "views": int(d.get("views", 0)),
+                "avg_view_pct": round(float(d.get("averageViewPercentage", 0)), 1),
+                "avg_view_sec": round(float(d.get("averageViewDuration", 0)), 1),
+                "minutes": round(float(d.get("estimatedMinutesWatched", 0)), 1)})
+        got = {x["video"] for x in rows}
+        missing = [v for v in video_ids if v not in got]  # 데이터 임계 미달 영상
+        return {"available": True, "days": days, "rows": rows, "missing": missing}
+    except Exception as e:  # noqa: BLE001
+        return {"available": False,
+                "note": f"Analytics 미연동/오류 ({type(e).__name__}: {str(e)[:120]})"}
+
+
 def summary_line(s: dict) -> str:
     base = (f"구독 {s['subscribers']:,}/{SUB_GOAL} | "
             f"숏츠뷰(프록시) {s['total_views']:,}/{SHORTS_VIEW_GOAL:,} | "

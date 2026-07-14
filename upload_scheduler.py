@@ -94,11 +94,25 @@ def record_manifest(mani_path: Path, rec: dict) -> None:
     os.replace(tmp, mani_path)
 
 
+def publish_at_kst(slot: int = 0, *, base: "datetime | None" = None) -> str:
+    """발행 시각 고정 정책(2026-07-14 Navigator): 매일 KST 21:00(slot0)/21:30(slot1),
+    지터 폐기. 오늘 해당 시각이 이미 지났으면 내일로. → RFC3339 UTC(Z) 문자열."""
+    from datetime import datetime, timedelta, timezone
+    kst = timezone(timedelta(hours=9))
+    now = base or datetime.now(kst)
+    hh, mm = (21, 0) if slot == 0 else (21, 30)
+    tgt = now.astimezone(kst).replace(hour=hh, minute=mm, second=0, microsecond=0)
+    if tgt <= now.astimezone(kst):
+        tgt += timedelta(days=1)
+    return tgt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def insert_video(svc, title, description, tags, category_id, privacy, video: Path,
-                 *, localizations: dict | None = None) -> dict:
+                 *, localizations: dict | None = None, publish_at: str | None = None) -> dict:
     """videos.insert(resumable) → 응답 dict(id 포함) 반환.
     글로벌 메타 표준: defaultLanguage/defaultAudioLanguage="ko" 항상 설정.
-    localizations={"en":{"title","description"}} 지정 시 함께 등록(part 확장)."""
+    localizations={"en":{"title","description"}} 지정 시 함께 등록(part 확장).
+    publish_at(RFC3339 UTC) 지정 시 예약발행 — privacyStatus를 private로 강제(YouTube 요건)."""
     from googleapiclient.http import MediaFileUpload
     body = {
         "snippet": {
@@ -110,10 +124,12 @@ def insert_video(svc, title, description, tags, category_id, privacy, video: Pat
             "defaultAudioLanguage": "ko",
         },
         "status": {
-            "privacyStatus": privacy,
+            "privacyStatus": "private" if publish_at else privacy,
             "selfDeclaredMadeForKids": False,
         },
     }
+    if publish_at:
+        body["status"]["publishAt"] = publish_at   # 예약발행(21:00/21:30 고정)
     part = "snippet,status"
     if localizations:
         body["localizations"] = localizations
@@ -146,7 +162,10 @@ def main(argv=None) -> int:
                     help="OAuth·업로드 없이 파싱·캡·대상만 출력")
     ap.add_argument("--privacy", default=None,
                     choices=["private", "unlisted", "public"], help="공개 범위(기본 config)")
+    ap.add_argument("--publish-slot", type=int, default=None, choices=[0, 1],
+                    help="예약발행 슬롯: 0=21:00 KST, 1=21:30 KST(2건째). 지터 없음(2026-07-14 정책).")
     args = ap.parse_args(argv)
+    publish_at = publish_at_kst(args.publish_slot) if args.publish_slot is not None else None
 
     slug = args.track
     tdir = ROOT / "tracks" / slug
@@ -215,8 +234,11 @@ def main(argv=None) -> int:
     log.info("OAuth 진행 — 브라우저에서 %s 계정으로 로그인하세요.", ACCOUNT_HINT)
     svc = _service(cs, tok)
 
-    # 5) 업로드 + 기록
-    resp = insert_video(svc, title, description, tags, category_id, privacy, video)
+    # 5) 업로드 + 기록 (publish_slot 지정 시 21:00/21:30 예약발행)
+    if publish_at:
+        log.info("예약발행(publishAt) = %s (slot %d)", publish_at, args.publish_slot)
+    resp = insert_video(svc, title, description, tags, category_id, privacy, video,
+                        publish_at=publish_at)
     vid = resp["id"]
     url = f"https://youtu.be/{vid}"
     rec = {
