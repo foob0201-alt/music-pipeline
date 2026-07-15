@@ -313,7 +313,7 @@ def _karaoke(words: List[Tuple[str, float, float]], line_start: float, text: str
 # 세로 숏츠 스타일 상수(1080x1920 기준, dual 팔레트 유지)
 S = dict(
     play_w=1080, play_h=1920, font="Malgun Gothic",
-    ko_fs=66, en_fs=50, ko_mv=620, en_mv=330, margin_lr=96,
+    ko_fs=66, en_fs=50, ko_mv=620, en_mv=540, margin_lr=96,  # en_mv: KO(620) 바로 아래 ~20px, 하단 UI존 위
     gold="&H0000D7FF", white="&H00FFFFFF", cream="&H00BED7DC",
     outline_c="&H00202020", back_c="&H64000000", outline=4, shadow=1,
     fade_in=250, fade_out=250, pop=106,

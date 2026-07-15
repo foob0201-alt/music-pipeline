@@ -95,12 +95,12 @@ def record_manifest(mani_path: Path, rec: dict) -> None:
 
 
 def publish_at_kst(slot: int = 0, *, base: "datetime | None" = None) -> str:
-    """발행 시각 고정 정책(2026-07-14 Navigator): 매일 KST 21:00(slot0)/21:30(slot1),
+    """발행 시각 고정 정책: 매일 KST 21:00(slot0)/22:00(slot1) — 1시간 간격(2026-07-15 정정).
     지터 폐기. 오늘 해당 시각이 이미 지났으면 내일로. → RFC3339 UTC(Z) 문자열."""
     from datetime import datetime, timedelta, timezone
     kst = timezone(timedelta(hours=9))
     now = base or datetime.now(kst)
-    hh, mm = (21, 0) if slot == 0 else (21, 30)
+    hh, mm = (21, 0) if slot == 0 else (22, 0)
     tgt = now.astimezone(kst).replace(hour=hh, minute=mm, second=0, microsecond=0)
     if tgt <= now.astimezone(kst):
         tgt += timedelta(days=1)
@@ -163,7 +163,7 @@ def main(argv=None) -> int:
     ap.add_argument("--privacy", default=None,
                     choices=["private", "unlisted", "public"], help="공개 범위(기본 config)")
     ap.add_argument("--publish-slot", type=int, default=None, choices=[0, 1],
-                    help="예약발행 슬롯: 0=21:00 KST, 1=21:30 KST(2건째). 지터 없음(2026-07-14 정책).")
+                    help="예약발행 슬롯: 0=21:00 KST, 1=22:00 KST(2건째, 1시간 간격). 지터 없음.")
     args = ap.parse_args(argv)
     publish_at = publish_at_kst(args.publish_slot) if args.publish_slot is not None else None
 

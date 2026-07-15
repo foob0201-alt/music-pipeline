@@ -1,5 +1,5 @@
 {
-  "count": 23,
+  "count": 25,
   "entries": [
     {
       "n": 1,
@@ -289,10 +289,10 @@
       "video_id": "YP2REEilFgM",
       "uploaded_via": "direct-publishAt-2perday",
       "date": "2026-07-14",
-      "privacy": "scheduled-public",
+      "privacy": "private-retired",
       "publish_at": "2026-07-14T21:00:00+09:00",
       "title": "「아무말도」 / I Said Nothing - Reina #Shorts",
-      "note": "2nd cut 백로그 배포. 5일간격 규칙 1회성 예외 승인(Navigator 2026-07-14): 1차컷 07-10 발행 4일차. 4일코호트 리텐션 상위 선정. publishAt 예약발행(21:00/21:30 KST). 합성콘텐츠 고지 Studio 확인 필요(예약 전)."
+      "note": "2nd cut 백로그 배포. 5일간격 규칙 1회성 예외 승인(Navigator 2026-07-14): 1차컷 07-10 발행 4일차. 4일코호트 리텐션 상위 선정. publishAt 예약발행(21:00/21:30 KST). 합성콘텐츠 고지 Studio 확인 필요(예약 전). | RETIRED: EN 자막 위치 결함+비표준 제목으로 private 회수, 수정본으로 대체(2026-07-15)."
     },
     {
       "n": 23,
@@ -304,10 +304,40 @@
       "video_id": "iHCGf-G6EGE",
       "uploaded_via": "direct-publishAt-2perday",
       "date": "2026-07-14",
-      "privacy": "scheduled-public",
+      "privacy": "private-retired",
       "publish_at": "2026-07-14T21:30:00+09:00",
       "title": "「그날」 / That Day - Reina #Shorts",
-      "note": "2nd cut 백로그 배포. 5일간격 규칙 1회성 예외 승인(Navigator 2026-07-14): 1차컷 07-10 발행 4일차. 4일코호트 리텐션 상위 선정. publishAt 예약발행(21:00/21:30 KST). 합성콘텐츠 고지 Studio 확인 필요(예약 전)."
+      "note": "2nd cut 백로그 배포. 5일간격 규칙 1회성 예외 승인(Navigator 2026-07-14): 1차컷 07-10 발행 4일차. 4일코호트 리텐션 상위 선정. publishAt 예약발행(21:00/21:30 KST). 합성콘텐츠 고지 Studio 확인 필요(예약 전). | RETIRED: EN 자막 위치 결함+비표준 제목으로 private 회수, 수정본으로 대체(2026-07-15)."
+    },
+    {
+      "n": 24,
+      "track": "amumaldo_shorts_cut2",
+      "ver": "shorts-v2",
+      "url": "https://youtu.be/x6kfpBOHfaw",
+      "spot_check": false,
+      "ts": "2026-07-15T11:16:00+09:00",
+      "video_id": "x6kfpBOHfaw",
+      "uploaded_via": "direct-publishAt-2perday",
+      "date": "2026-07-15",
+      "privacy": "scheduled-public",
+      "publish_at": "2026-07-15T21:00:00+09:00",
+      "title": "\"난 아무말도 하지 않았어\" | 아무말도 - Reina",
+      "note": "2nd cut 재배포(EN 자막 위치 수정 재렌더: en_mv 330→540, KO 직하). 제목 표준 '가사구절 | 곡명 - Reina'. 5일간격 규칙 1회 예외(Navigator). publishAt 21:00/22:00 KST. 구 결함본 YP2REEilFgM,iHCGf-G6EGE 대체. 합성콘텐츠 고지 Studio 확인 필요."
+    },
+    {
+      "n": 25,
+      "track": "geunal_shorts_cut2",
+      "ver": "shorts-v2",
+      "url": "https://youtu.be/q4wN9Riyi0A",
+      "spot_check": false,
+      "ts": "2026-07-15T11:16:00+09:00",
+      "video_id": "q4wN9Riyi0A",
+      "uploaded_via": "direct-publishAt-2perday",
+      "date": "2026-07-15",
+      "privacy": "scheduled-public",
+      "publish_at": "2026-07-15T22:00:00+09:00",
+      "title": "\"이제 쓰라린 상처가 아무렇지 않아\" | 그날 - Reina",
+      "note": "2nd cut 재배포(EN 자막 위치 수정 재렌더: en_mv 330→540, KO 직하). 제목 표준 '가사구절 | 곡명 - Reina'. 5일간격 규칙 1회 예외(Navigator). publishAt 21:00/22:00 KST. 구 결함본 YP2REEilFgM,iHCGf-G6EGE 대체. 합성콘텐츠 고지 Studio 확인 필요."
     }
   ]
 }
