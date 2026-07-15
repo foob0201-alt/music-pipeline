@@ -443,7 +443,7 @@ def main() -> int:
     ap.add_argument("--title", default="",
                     help="상단 오버레이용 대표 가사구절 1줄(자막과 별개 소스)")
     ap.add_argument("--song", default="",
-                    help="곡명 — 상단 오버레이를 표준 제목포맷 '\"가사구절\" | 곡명 - Reina'로 조립")
+                    help="곡명 — 상단 오버레이를 표준 포맷 '곡명 - Reina'로 조립(가사훅 미포함)")
     ap.add_argument("--min-sec", type=float, default=20.0)
     ap.add_argument("--max-sec", type=float, default=40.0)
     ap.add_argument("--which", type=int, default=0, help="몇 번째 코러스 블록(0=첫)")
@@ -460,9 +460,10 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true", help="감지만 출력(렌더 안 함)")
     a = ap.parse_args()
     title_overlay = not a.no_title_overlay
-    # 상단 제목 오버레이 = 표준 포맷 "가사구절" | 곡명 - Reina (자막 트랙과 독립 소스).
-    # --song 지정 시 포맷 조립, 미지정 시 --title 원문(하위호환).
-    overlay_text = ('"%s" | %s - Reina' % (a.title, a.song)) if (a.song and a.title) else a.title
+    # 상단 오버레이 = 표준 포맷 "곡명 - Reina" (곡명+아티스트만; 가사훅 미포함, 자막과 독립).
+    # 가사 키워드는 화면 밖 메타데이터(제목/설명/해시태그)로만 유지(2026-07-15 표준 변경).
+    # --song 지정 시 "곡명 - Reina" 조립, 미지정 시 --title 원문(하위호환).
+    overlay_text = ('%s - Reina' % a.song) if a.song else a.title
 
     # ---- 인스트루멘털: RMS 피크, 가사 자막 없음(제목 오버레이는 유지) ----
     if a.instrumental:
