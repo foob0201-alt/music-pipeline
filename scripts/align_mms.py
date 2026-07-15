@@ -32,6 +32,18 @@ if len(sys.argv) < 2:
     print("usage: python scripts/align_mms.py <track_name>")
     sys.exit(1)
 TRACK = sys.argv[1]
+# 청크 모드(장곡 OOM 회피): --chunk-sec N → 무음경계에서 분할, 청크별 forward emission을
+# 전역 프레임 오프셋으로 병합 후 전체 transcript로 1회 정렬(align.json 스키마 불변).
+# 0=풀패스(기존 동작, 회귀 위험 없음). 무음(RMS 저점 ≥0.5s)에서만 컷 → 가사 줄 미분할.
+CHUNK_SEC = 0.0
+if "--chunk-sec" in sys.argv:
+    CHUNK_SEC = float(sys.argv[sys.argv.index("--chunk-sec") + 1])
+elif "--chunk" in sys.argv:
+    CHUNK_SEC = 40.0
+# 하이브리드(2026-07-15 Navigator 승인): 청크는 풀패스 OOM 회피용 폴백 전용.
+# 오디오가 FULLPASS_MAX 이하면 --chunk-sec 지정돼도 풀패스(반복 후렴 ±0.3s 정확).
+# 초과(장곡 OOM 위험)만 청크. → owol(175s) 풀패스=회귀 자동통과 / ganda(258s) 청크.
+FULLPASS_MAX = 220.0
 ROOT  = Path(__file__).resolve().parents[1]          # scripts/ 의 상위 = repo 루트
 TDIR  = ROOT / "tracks" / TRACK
 
@@ -146,33 +158,176 @@ model     = bundle.get_model(with_star=True).to(device)
 tokenizer = bundle.get_tokenizer()
 aligner   = bundle.get_aligner()
 
+
+def _silence_cuts(data, sr, min_sil=0.5, win=0.05, low_pct=12):
+    """무음(RMS 저점 ≥min_sil초) 구간의 중앙 샘플 인덱스 — 청크 컷 후보(가사 줄 미분할)."""
+    hop = max(1, int(sr * win))
+    rms = np.array([float(np.sqrt(np.mean(data[i:i+hop] ** 2)) if len(data[i:i+hop]) else 0.0)
+                    for i in range(0, len(data), hop)])
+    thr = np.percentile(rms, low_pct)
+    silent = rms < thr
+    need = max(1, int(min_sil / win))
+    cuts, run = [], None
+    for i, s in enumerate(silent):
+        if s and run is None:
+            run = i
+        elif not s and run is not None:
+            if i - run >= need:
+                cuts.append(((run + i) // 2) * hop)
+            run = None
+    if run is not None and len(silent) - run >= need:
+        cuts.append(((run + len(silent)) // 2) * hop)
+    return cuts
+
+
+def _chunk_ranges(n, sr, cuts, target_sec):
+    """무음 컷에서만 분할해 ~target_sec 청크 범위 생성(고정길이 금지). 무음 없으면 이어붙임."""
+    target = int(target_sec * sr)
+    cuts = sorted(cuts)
+    ranges, start = [], 0
+    while start < n:
+        if start + target >= n:
+            ranges.append((start, n)); break
+        ideal = start + target
+        cand = [c for c in cuts if start + int(target * 0.4) <= c <= start + int(target * 1.6)]
+        cut = min(cand, key=lambda c: abs(c - ideal)) if cand else min(n, ideal)
+        if cut <= start:
+            cut = min(n, start + target)
+        ranges.append((start, cut)); start = cut
+    return ranges
+
+
+def _emission_chunked(model, waveform, sr, target_sec, device):
+    """무음경계 청크별 forward → 프레임축 병합(전역 오프셋). 풀패스 OOM 회피, 결과는 전역 동일."""
+    data = waveform[0].cpu().numpy()
+    cuts = _silence_cuts(data, sr)
+    ranges = _chunk_ranges(len(data), sr, cuts, target_sec)
+    ems = []
+    for a, b in ranges:
+        with torch.inference_mode():
+            e, _ = model(waveform[:, a:b].to(device))
+        ems.append(e.cpu())
+    return torch.cat(ems, dim=1), ranges
+
+
+def _spans_to_wt(spans, ratio, offset_sec=0.0):
+    """token_spans(단어별 리스트) → 단어별 (t0,t1,score) 전역 초. transcript 순서."""
+    out = []
+    for sp in spans:
+        t0 = ratio * sp[0].start / SR + offset_sec
+        t1 = ratio * sp[-1].end / SR + offset_sec
+        dur = max(1, sum(s.end - s.start for s in sp))
+        sc = sum(s.score * (s.end - s.start) for s in sp) / dur
+        out.append((t0, t1, float(sc)))
+    return out
+
+
+word_times = [None] * len(transcript)        # meta 순서 단어별 (t0,t1,score)
 try:
-    with torch.inference_mode():
-        emission, _ = model(waveform.to(device))
-        token_spans = aligner(emission[0], tokenizer(transcript))
+    if CHUNK_SEC > 0 and total_sec <= FULLPASS_MAX:
+        print("[하이브리드] %.1fs ≤ %.0fs → 청크 지정됐지만 풀패스 사용(반복 후렴 정확)."
+              % (total_sec, FULLPASS_MAX))
+    if CHUNK_SEC > 0 and total_sec > FULLPASS_MAX:
+        # ── 청크 align v2: 오버랩 청크 포워드(OOM 회피, 이음새 무결) + 적응 star 2패스 ──
+        # OOM은 '모델 포워드'에서만 난다(258s ~1.7GB). 이를 피하되 정렬은 풀패스와
+        # 동일해야 한다. 두 축으로 해결:
+        #  (A) 오버랩 포워드: 각 청크를 ±PAD 여유로 forward 후 코어 프레임만 잘라 병합
+        #      → 이음새 프레임을 이웃 문맥이 있는 프레임으로 대체 → concat emission이
+        #      풀패스 emission에 근접(경계 아티팩트 제거).
+        #  (B) 적응 star: 라인마다 star를 넣으면 짧은 전환이 애매해져 밀리고, star가
+        #      전무하면 긴 간주가 가사를 강제 흡수해 드리프트한다. 그래서 1패스(라인마다
+        #      star)로 큰 간주(>GAP_STAR)만 찾고, 2패스에서 앞뒤 + 큰 간주에만 star를
+        #      넣어 정렬 → 짧은 전환은 풀패스처럼 타이트, 긴 간주는 star가 흡수.
+        # aligner는 같은 emission에 2회(초 단위)뿐 — 포워드는 1회.
+        import ctypes
+        def _peak_mb():
+            try:
+                class _PMC(ctypes.Structure):
+                    _fields_ = [("cb", ctypes.c_ulong), ("pfc", ctypes.c_ulong),
+                                ("pws", ctypes.c_size_t), ("ws", ctypes.c_size_t),
+                                ("qppp", ctypes.c_size_t), ("qpp", ctypes.c_size_t),
+                                ("qpnpp", ctypes.c_size_t), ("qpnp", ctypes.c_size_t),
+                                ("pfu", ctypes.c_size_t), ("ppfu", ctypes.c_size_t)]
+                k = ctypes.windll.kernel32
+                k.GetCurrentProcess.restype = ctypes.c_void_p    # 64bit 핸들 절단 방지
+                c = _PMC(); c.cb = ctypes.sizeof(c)
+                ok = ctypes.windll.psapi.GetProcessMemoryInfo(
+                    ctypes.c_void_p(k.GetCurrentProcess()), ctypes.byref(c), c.cb)
+                return c.pws / 1e6 if ok else -1.0           # PeakWorkingSetSize
+            except Exception:
+                return -1.0
+
+        PAD = 32000        # 오버랩 여유(2s) — 수용영역 충분(8s 실험도 반복밀림 개선 無)
+        FR = 320           # 샘플/프레임(stride) — 코어 프레임 범위 환산용
+        GAP_STAR = 4.0     # 이 이상의 무가사 간주 경계에만 star 삽입(짧은 전환은 제외)
+        N = len(ko_lines)
+        data = waveform[0].cpu().numpy()
+        cuts = sorted(_silence_cuts(data, SR))
+        ranges = _chunk_ranges(len(data), SR, cuts, max(CHUNK_SEC, 40.0))
+        # (A) 오버랩 포워드 → 코어 프레임만 병합(이음새 아티팩트 제거)
+        cores = []
+        for a, b in ranges:
+            sa = max(0, a - PAD); sb = min(len(data), b + PAD)
+            with torch.inference_mode():
+                e, _ = model(waveform[:, sa:sb].to(device))
+            e = e.cpu()
+            T = e.size(1)
+            j0 = 0 if a == 0 else max(0, min(T, round((a - sa) / FR)))
+            j1 = T if b == len(data) else max(j0, min(T, round((b - sa) / FR)))
+            cores.append(e[:, j0:j1, :])
+        emission = torch.cat(cores, dim=1); del cores
+        ratio = waveform.size(1) / emission.size(1)
+
+        def _align_stars(bound_set):
+            """bound_set 라인 경계 앞 + 앞/뒤에 star 삽입해 정렬 → word별 (t0,t1,sc)."""
+            sk, cur = [None], None                    # head star
+            for k, (li, surf) in enumerate(meta):
+                if cur is not None and li != cur and li in bound_set:
+                    sk.append(None)
+                cur = li
+                sk.append(k)
+            sk.append(None)                           # tail star
+            w = ["*" if x is None else transcript[x] for x in sk]
+            wtt = _spans_to_wt(aligner(emission[0], tokenizer(w)), ratio)
+            out = [None] * len(transcript)
+            for pos, x in enumerate(sk):
+                if x is not None:
+                    out[x] = wtt[pos]
+            return out
+
+        # (B) 1패스: 라인마다 star → 라인 시작/끝 → 큰 간주(>GAP_STAR) 경계 탐지
+        wtA = _align_stars(set(range(1, N)))
+        lsA = [1e9] * N; leA = [-1.0] * N
+        for k, (li, surf) in enumerate(meta):
+            t0, t1, _ = wtA[k]
+            lsA[li] = min(lsA[li], t0); leA[li] = max(leA[li], t1)
+        big = set(li for li in range(1, N)
+                  if lsA[li] < 1e8 and leA[li - 1] > -1 and lsA[li] - leA[li - 1] > GAP_STAR)
+        # (B) 2패스: 앞/뒤 + 큰 간주 경계에만 star(짧은 전환은 풀패스처럼 타이트) → 최종
+        wtB = _align_stars(big)
+        for k in range(len(transcript)):
+            word_times[k] = wtB[k] if wtB[k] is not None else wtA[k]
+        del emission
+        print("[청크] 오버랩forward %d청크(%s) PAD=%.0fs | 큰간주>%.0fs 경계: %s | 피크 %.0fMB" % (
+            len(ranges), ", ".join("%.0f-%.0fs" % (a / SR, b / SR) for a, b in ranges),
+            PAD / SR, GAP_STAR, sorted(l + 1 for l in big), _peak_mb()))
+    else:
+        with torch.inference_mode():
+            emission, _ = model(waveform.to(device))
+            token_spans = aligner(emission[0], tokenizer(transcript))
+        word_times = _spans_to_wt(token_spans, waveform.size(1) / emission.size(1))
 except RuntimeError as e:
-    # CPU 메모리 부족 시: 풀패스 실패 → 보고 후 청크 버전으로 전환
     print(f"[ERR] 정렬 실패(메모리 가능성): {e}")
-    print("      → 이 로그를 네비게이터에게 전달하면 청크 분할 버전으로 교체합니다.")
+    print("      → 풀패스 OOM이면 --chunk-sec 35 로 재시도(무음경계 청크 분할).")
     sys.exit(4)
 
-num_frames = emission.size(1)
-ratio = waveform.size(1) / num_frames               # samples per emission frame
-
-def to_sec(spans):
-    t0 = ratio * spans[0].start / SR
-    t1 = ratio * spans[-1].end / SR
-    dur = max(1, sum(s.end - s.start for s in spans))
-    sc  = sum(s.score * (s.end - s.start) for s in spans) / dur
-    return t0, t1, float(sc)
-
-assert len(token_spans) == len(transcript), "토큰/단어 수 불일치"
+assert len(word_times) == len(transcript), "토큰/단어 수 불일치"
 
 # 단어 → 줄 집계
 lines = [{"idx": i, "ko": ko_lines[i], "start": None, "end": None, "words": []}
          for i in range(len(ko_lines))]
-for (li, surf), spans in zip(meta, token_spans):
-    t0, t1, sc = to_sec(spans)
+for k, (li, surf) in enumerate(meta):
+    t0, t1, sc = word_times[k]
     L = lines[li]
     L["words"].append({"w": surf, "start": round(t0, 3), "end": round(t1, 3),
                        "score": round(sc, 3)})
@@ -196,6 +351,16 @@ for i in range(1, len(lines)):
 for L in lines:
     L["start"] = round(L["start"], 3)
     L["end"]   = round(L["end"], 3)
+
+# ----- 4.5 병합 검증 (라인수 일치 · 단조증가 · 청크경계 >10s 이상치 없음) --------
+_n = len(lines)
+_mono = all(lines[i]["start"] >= lines[i-1]["start"] for i in range(1, _n))
+_gaps = [(i, round(lines[i]["start"] - lines[i-1]["end"], 2))
+         for i in range(1, _n) if lines[i]["start"] - lines[i-1]["end"] > 10]
+print("[검증] 라인 %d/%d  단조증가=%s  >10s간격=%d%s" %
+      (_n, len(ko_lines), _mono, len(_gaps), (" %s" % _gaps) if _gaps else ""))
+if _n != len(ko_lines):
+    print("[WARN] 라인수 불일치 — align.json 확인 필요")
 
 # ----- 5. 저장: align.json + 미리보기 LRC ----------------------------------
 (OUT / "align.json").write_text(json.dumps(
