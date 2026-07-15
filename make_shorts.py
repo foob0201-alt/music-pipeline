@@ -440,7 +440,10 @@ def main() -> int:
     ap.add_argument("--cover", required=True)
     ap.add_argument("--audio", required=True)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--title", default="")
+    ap.add_argument("--title", default="",
+                    help="상단 오버레이용 대표 가사구절 1줄(자막과 별개 소스)")
+    ap.add_argument("--song", default="",
+                    help="곡명 — 상단 오버레이를 표준 제목포맷 '\"가사구절\" | 곡명 - Reina'로 조립")
     ap.add_argument("--min-sec", type=float, default=20.0)
     ap.add_argument("--max-sec", type=float, default=40.0)
     ap.add_argument("--which", type=int, default=0, help="몇 번째 코러스 블록(0=첫)")
@@ -452,11 +455,14 @@ def main() -> int:
                     help="가사 없는 인스트루멘털 — RMS 피크 구간, 가사 자막 없음")
     ap.add_argument("--no-title-overlay", action="store_true",
                     help="상단 제목 오버레이 끄기(기본 켬)")
-    ap.add_argument("--handle", default="@reinamusic_0217",
+    ap.add_argument("--handle", default="@reina_music0217",
                     help="하단 구석 핸들 시그니처(빈 문자열이면 끔)")
     ap.add_argument("--dry-run", action="store_true", help="감지만 출력(렌더 안 함)")
     a = ap.parse_args()
     title_overlay = not a.no_title_overlay
+    # 상단 제목 오버레이 = 표준 포맷 "가사구절" | 곡명 - Reina (자막 트랙과 독립 소스).
+    # --song 지정 시 포맷 조립, 미지정 시 --title 원문(하위호환).
+    overlay_text = ('"%s" | %s - Reina' % (a.title, a.song)) if (a.song and a.title) else a.title
 
     # ---- 인스트루멘털: RMS 피크, 가사 자막 없음(제목 오버레이는 유지) ----
     if a.instrumental:
@@ -469,7 +475,7 @@ def main() -> int:
         ass_arg = None
         if (title_overlay and a.title) or a.handle:
             ass_path = Path(a.out).with_suffix(".shorts.ass")
-            ass_path.write_text(build_shorts_ass(win, [], None, a.title,
+            ass_path.write_text(build_shorts_ass(win, [], None, overlay_text,
                                                  title_overlay=title_overlay, handle=a.handle),
                                 encoding="utf-8")
             ass_arg = ass_path
@@ -514,7 +520,7 @@ def main() -> int:
 
     ass_path = Path(a.out).with_suffix(".shorts.ass")
     en = en_lines_matched(Path(a.lyrics_en), len(lines)) if a.lyrics_en else None
-    ass_path.write_text(build_shorts_ass(win, lines, en, a.title or Path(a.out).stem,
+    ass_path.write_text(build_shorts_ass(win, lines, en, overlay_text or Path(a.out).stem,
                                          title_overlay=title_overlay, handle=a.handle),
                         encoding="utf-8")
     print(f"  ASS: {ass_path}")
