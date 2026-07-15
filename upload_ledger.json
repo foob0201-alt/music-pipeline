@@ -1,5 +1,5 @@
 {
-  "count": 25,
+  "count": 27,
   "entries": [
     {
       "n": 1,
@@ -319,10 +319,10 @@
       "video_id": "x6kfpBOHfaw",
       "uploaded_via": "direct-publishAt-2perday",
       "date": "2026-07-15",
-      "privacy": "scheduled-public",
+      "privacy": "deleted",
       "publish_at": "2026-07-15T21:00:00+09:00",
       "title": "\"난 아무말도 하지 않았어\" | 아무말도 - Reina",
-      "note": "2nd cut 재배포(EN 자막 위치 수정 재렌더: en_mv 330→540, KO 직하). 제목 표준 '가사구절 | 곡명 - Reina'. 5일간격 규칙 1회 예외(Navigator). publishAt 21:00/22:00 KST. 구 결함본 YP2REEilFgM,iHCGf-G6EGE 대체. 합성콘텐츠 고지 Studio 확인 필요."
+      "note": "2nd cut 재배포(EN 자막 위치 수정 재렌더: en_mv 330→540, KO 직하). 제목 표준 '가사구절 | 곡명 - Reina'. 5일간격 규칙 1회 예외(Navigator). publishAt 21:00/22:00 KST. 구 결함본 YP2REEilFgM,iHCGf-G6EGE 대체. 합성콘텐츠 고지 Studio 확인 필요. | DELETED 2026-07-15: 중간 결함본(핸들오타+오버레이) 정리, 공개 이력 없음(집행 前 HOLD). v4로 대체."
     },
     {
       "n": 25,
@@ -334,10 +334,40 @@
       "video_id": "q4wN9Riyi0A",
       "uploaded_via": "direct-publishAt-2perday",
       "date": "2026-07-15",
+      "privacy": "deleted",
+      "publish_at": "2026-07-15T22:00:00+09:00",
+      "title": "\"이제 쓰라린 상처가 아무렇지 않아\" | 그날 - Reina",
+      "note": "2nd cut 재배포(EN 자막 위치 수정 재렌더: en_mv 330→540, KO 직하). 제목 표준 '가사구절 | 곡명 - Reina'. 5일간격 규칙 1회 예외(Navigator). publishAt 21:00/22:00 KST. 구 결함본 YP2REEilFgM,iHCGf-G6EGE 대체. 합성콘텐츠 고지 Studio 확인 필요. | DELETED 2026-07-15: 중간 결함본(핸들오타+오버레이) 정리, 공개 이력 없음(집행 前 HOLD). v4로 대체."
+    },
+    {
+      "n": 26,
+      "track": "amumaldo_shorts_cut2",
+      "ver": "shorts-v4",
+      "url": "https://youtu.be/jsNpngzk6EA",
+      "spot_check": false,
+      "ts": "2026-07-15T16:55:29+09:00",
+      "video_id": "jsNpngzk6EA",
+      "uploaded_via": "direct-publishAt-v4-replace",
+      "date": "2026-07-15",
+      "privacy": "scheduled-public",
+      "publish_at": "2026-07-15T21:00:00+09:00",
+      "title": "\"난 아무말도 하지 않았어\" | 아무말도 - Reina",
+      "note": "v4 최종본(EN en_mv540 + 핸들 @reina_music0217 + 오버레이 '곡명-Reina'). 구 공개본 YP2REEilFgM(어제 공개·시청데이터 보유) 교체용. publishAt 21:00/22:00 KST. v4 공개 확인 후 YP2REEilFgM 비공개 전환 예정(데이터 보존, 삭제 아님)."
+    },
+    {
+      "n": 27,
+      "track": "geunal_shorts_cut2",
+      "ver": "shorts-v4",
+      "url": "https://youtu.be/jwilIe9A3ts",
+      "spot_check": false,
+      "ts": "2026-07-15T16:55:29+09:00",
+      "video_id": "jwilIe9A3ts",
+      "uploaded_via": "direct-publishAt-v4-replace",
+      "date": "2026-07-15",
       "privacy": "scheduled-public",
       "publish_at": "2026-07-15T22:00:00+09:00",
       "title": "\"이제 쓰라린 상처가 아무렇지 않아\" | 그날 - Reina",
-      "note": "2nd cut 재배포(EN 자막 위치 수정 재렌더: en_mv 330→540, KO 직하). 제목 표준 '가사구절 | 곡명 - Reina'. 5일간격 규칙 1회 예외(Navigator). publishAt 21:00/22:00 KST. 구 결함본 YP2REEilFgM,iHCGf-G6EGE 대체. 합성콘텐츠 고지 Studio 확인 필요."
+      "note": "v4 최종본(EN en_mv540 + 핸들 @reina_music0217 + 오버레이 '곡명-Reina'). 구 공개본 iHCGf-G6EGE(어제 공개·시청데이터 보유) 교체용. publishAt 21:00/22:00 KST. v4 공개 확인 후 iHCGf-G6EGE 비공개 전환 예정(데이터 보존, 삭제 아님)."
     }
   ]
 }
