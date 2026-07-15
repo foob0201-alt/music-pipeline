@@ -405,7 +405,12 @@ channel revenue (decision 2026-07-03).
 - **복귀 조건(Navigator):** 신규 컷 리텐션 **75%/65%** 밑 2회 연속 → 1건/일 복귀. 메인 신곡 발행일엔 그날 숏츠 1건으로 감축(메인+숏츠 동일자 금지).
 - **합성콘텐츠 고지:** 두 영상 자동 공개 전 Studio 고지 설정 필요(수동, API 불가).
 
-### ganda 청크 align — 현재 상태(2026-07-14)
-- 밀도-그룹 2-pass 폐기 → **오버랩 청크 포워드(이음새 무결) + 적응 star** 재설계. catastrophic drift(5~14s) **해소**.
-- **owol 회귀 FAIL:** 반복 후렴 5줄 최대 2.2s(±0.3s 초과). 원인=청크 emission 미세차 → CTC 반복경계 tip(내재적, PAD 2/8s 무개선).
-- **PM 권고 = 하이브리드**(≤~220s 풀패스 / 초과만 청크). `게이트 자체 승인 금지`로 **ganda align 착수 보류·결정 대기.** owol 발행본 align.json은 baseline 복원 유지.
+### 2026-07-15 갱신
+
+**숏츠 상단 오버레이 표준 변경:** `"가사구절" | 곡명 - Reina` → **`곡명 - Reina`**(가사훅 제거, 곡명+아티스트만). 가사 키워드는 화면 밖 메타데이터로만. 핸들 오타 **`@reinamusic_0217` → `@reina_music0217`**(실측 확정) 정정. make_shorts `--song` 인자로 오버레이 조립(자막 트랙과 독립 소스). amumaldo/geunal cut2 재렌더 3요소 PASS = **「합성 준비 완료」**. 구 예약본 2건 예약 해제(HOLD). 기발행 8곡 미변경(Commander 확정).
+
+**ganda 커버 CONFIRMED:** 배경 **88506**(다크 사이버 야간 고속도로, 블루+바이올렛 차선광) + 시그니처 합성 → `tracks/ganda/cover.jpg` 2560×1440, `.cover_ok` 서명(sha256 e3a2e1e0…, Navigator 검수→Commander 확정). 88507·88508 폐기(88508=차량 검출). 구 커버 A/991329 트와일라잇 무효. 밝은톤 자동룰 미적용(추모곡 예외).
+
+### ganda 청크 align — 상태(owol 회귀 FAIL, 하이브리드 결정 대기)
+- 오버랩 청크 포워드 + 적응 star. catastrophic drift(5~14s) **해소**. 단, **owol 회귀 FAIL**: 반복 후렴 5줄 최대 2.2s(±0.3s 초과) — 청크 emission 미세차 → CTC 반복경계 tip(내재적, PAD 2/8s·star 무관).
+- 커버는 CONFIRMED이나 **align은 owol 게이트 FAIL로 정지**(preview·본 렌더 미착수). **PM 권고 = 하이브리드**(≤~220s 풀패스=회귀 자동통과 / 258s ganda만 청크 → preview 육안검수로 검증). owol 발행본 align.json baseline 유지.
