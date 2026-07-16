@@ -349,10 +349,11 @@
       "video_id": "jsNpngzk6EA",
       "uploaded_via": "direct-publishAt-v4-replace",
       "date": "2026-07-15",
-      "privacy": "scheduled-public",
+      "privacy": "public",
       "publish_at": "2026-07-15T21:00:00+09:00",
       "title": "\"난 아무말도 하지 않았어\" | 아무말도 - Reina",
-      "note": "v4 최종본(EN en_mv540 + 핸들 @reina_music0217 + 오버레이 '곡명-Reina'). 구 공개본 YP2REEilFgM(어제 공개·시청데이터 보유) 교체용. publishAt 21:00/22:00 KST. v4 공개 확인 후 YP2REEilFgM 비공개 전환 예정(데이터 보존, 삭제 아님)."
+      "note": "v4 최종본(EN en_mv540 + 핸들 @reina_music0217 + 오버레이 '곡명-Reina'). 구 공개본 YP2REEilFgM(어제 공개·시청데이터 보유) 교체용. publishAt 21:00/22:00 KST. v4 공개 확인 후 YP2REEilFgM 비공개 전환 예정(데이터 보존, 삭제 아님). | PUBLIC 확인 07-16(예약 자동집행 성공).",
+      "published_at": "2026-07-15T21:00:00+09:00"
     },
     {
       "n": 27,
@@ -364,10 +365,11 @@
       "video_id": "jwilIe9A3ts",
       "uploaded_via": "direct-publishAt-v4-replace",
       "date": "2026-07-15",
-      "privacy": "scheduled-public",
+      "privacy": "public",
       "publish_at": "2026-07-15T22:00:00+09:00",
       "title": "\"이제 쓰라린 상처가 아무렇지 않아\" | 그날 - Reina",
-      "note": "v4 최종본(EN en_mv540 + 핸들 @reina_music0217 + 오버레이 '곡명-Reina'). 구 공개본 iHCGf-G6EGE(어제 공개·시청데이터 보유) 교체용. publishAt 21:00/22:00 KST. v4 공개 확인 후 iHCGf-G6EGE 비공개 전환 예정(데이터 보존, 삭제 아님)."
+      "note": "v4 최종본(EN en_mv540 + 핸들 @reina_music0217 + 오버레이 '곡명-Reina'). 구 공개본 iHCGf-G6EGE(어제 공개·시청데이터 보유) 교체용. publishAt 21:00/22:00 KST. v4 공개 확인 후 iHCGf-G6EGE 비공개 전환 예정(데이터 보존, 삭제 아님). | PUBLIC 확인 07-16(예약 자동집행 성공).",
+      "published_at": "2026-07-15T22:00:00+09:00"
     }
   ]
 }
