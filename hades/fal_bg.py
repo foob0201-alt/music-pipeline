@@ -6,7 +6,8 @@
 - 프롬프트 3층 = SCENE(가사 앵커·최전방) / CAMERA(구도) / GRADE(하우스 그레이드·후방 고정).
   파랑은 GRADE(cool blue-leaning)에서 나온다 — 하늘/물/바다 오브제는 '가사에 실재할 때만' SCENE 투입.
   야간 정서 곡은 --grade bright_nocturne(딥블랙 금지). SCENE 앵커 가사 줄번호는 genlog 기록.
-- 네거티브 프롬프트 제거(FLUX.2 Pro 미지원) → 전면 긍정 기술로 대체.
+- 네거티브 말미 복원(2026-07-21, VISUAL §3.1): flux-2-pro 는 negative 필드가 없어 프롬프트
+  말미에 고정 네거티브 문자열(NEGATIVE)로 명시. (07-03 48e1a22 무사인오프 제거는 드리프트로 기록)
 - style_ref/ 확정 배경을 FLUX.2 [pro] edit 엔드포인트(image_urls, 최대 9장)에 멀티레퍼런스로
   자동 첨부(색감/광량/채도 일관성, 구도·건물 복제 금지). --no-ref 로 해제.
 - tone_check(): 평균 밝기·채도·황색끼(R-B)·회색끼 임계 검사. 불합격 시 seed 변경 재생성.
@@ -57,8 +58,8 @@ STYLE_REF_DIR = REPO / "style_ref"
 #   L2 CAMERA: 구도·매체(고정). wide shot·airy·제목 여백·cinematic 16:9.
 #   L3 GRADE : 색·노출 그레이드(하우스 불변, 후방 고정). cool blue-leaning.
 #              야간 정서 곡은 grade="bright_nocturne"(딥블랙 금지, 빛 살림).
-# 네거티브 프롬프트는 FLUX.2 Pro 미지원 → 전면 '긍정 기술'로 대체(회색/세피아 금지
-# 취지는 vivid clean saturation·transparent air 등 긍정문으로 승계).
+# 네거티브는 flux-2-pro 가 negative 필드를 노출하지 않으므로 프롬프트 '말미 고정 문자열'(NEGATIVE)로
+# 명시한다. 원표준 복원(2026-07-21, VISUAL §3.1) — A/B 실측(2변형×2시드) A 우세로 확정.
 # ─────────────────────────────────────────────────────────────────────────
 CAMERA = (
     "Wide-shot photograph, wide open airy composition, "
@@ -80,6 +81,12 @@ GRADE = {
 }
 GRADES = tuple(GRADE)
 
+# 고정 네거티브 말미(하우스 규약, 원표준 복원 2026-07-21 · VISUAL §3.1). flux-2-pro 는 negative
+# 필드가 없어 프롬프트 말미에 명시. A/B 실측 A 우세로 확정(07-03 48e1a22 무사인오프 제거=드리프트).
+NEGATIVE = (
+    "No yellow tint, no sepia, no film wash, no haze, no muted grey, no gloom."
+)
+
 # 레퍼런스 사용 시 스타일-온리 지시(레퍼런스의 구도/건물 복제 금지).
 REF_PREFIX = (
     "Use {refs} ONLY as strict style references for color grade, exposure and "
@@ -89,10 +96,11 @@ REF_PREFIX = (
 
 
 def build_prompt(scene: str, *, grade: str = "day") -> str:
-    """3층 조립: SCENE(가사 앵커) → CAMERA(구도) → GRADE(하우스 그레이드).
-    scene 에는 가사에 실재하는 오브제만 담는다(하늘/물/바다 강제 없음)."""
+    """조립: SCENE(가사 앵커) → CAMERA(구도) → GRADE(하우스 그레이드) → NEGATIVE(말미 고정).
+    scene 에는 가사에 실재하는 오브제만 담는다(하늘/물/바다 강제 없음).
+    네거티브는 flux-2-pro negative 필드 부재를 보완하는 말미 고정 문자열(원표준, VISUAL §3.1)."""
     g = GRADE.get(grade) or GRADE["day"]
-    return f"{scene.strip()}. {CAMERA} {g}"
+    return f"{scene.strip()}. {CAMERA} {g} {NEGATIVE}"
 
 
 # ─────────────────────────────────────────────────────────────────────────
