@@ -327,7 +327,8 @@ def generate_candidates(prompt: str, slug: str, *, width: int = 2560, height: in
                         base_seed: int | None = None, target: int = 3, max_retries: int = 5,
                         reference_images: list | None = None,
                         scene_anchor: str | None = None,
-                        out_dir: Path | None = None) -> dict:
+                        out_dir: Path | None = None,
+                        skip_tone: bool = False) -> dict:
     """톤 합격 후보 target 장 확보. 불합격 시 seed 변경 재생성(최대 max_retries 추가 시도).
     {passed:[{path,seed,metrics}], attempts:[...], target, secured} 반환."""
     out_dir = out_dir or (REPO / "tracks" / slug)
@@ -349,14 +350,18 @@ def generate_candidates(prompt: str, slug: str, *, width: int = 2560, height: in
             print(f"  [attempt {i}] seed {seed}: 생성실패 {e!r}")
             continue
         tc = tone_check(out)
-        rec = {"seed": seed, "path": str(out), "ok": tc["ok"],
-               "metrics": tc["metrics"], "reasons": tc["reasons"]}
+        keep = skip_tone or tc["ok"]          # skip_tone: 밝은톤 임계 무시(다크 톤 곡 예외)
+        rec = {"seed": seed, "path": str(out), "ok": keep,
+               "metrics": tc["metrics"], "reasons": tc["reasons"], "tone_skipped": skip_tone}
         attempts.append(rec)
         m = tc["metrics"]
-        status = "PASS" if tc["ok"] else "FAIL(" + ", ".join(tc["reasons"]) + ")"
+        if skip_tone and not tc["ok"]:
+            status = "SKIP-TONE kept (" + ", ".join(tc["reasons"]) + ")"
+        else:
+            status = "PASS" if tc["ok"] else "FAIL(" + ", ".join(tc["reasons"]) + ")"
         print(f"  [attempt {i}] seed {seed}: 밝기{m['brightness']:.0f} 채도{m['saturation']:.0f} "
               f"R-B{m['warm_index']:+.0f} 회색{m['gray_frac']:.2f} → {status}")
-        if tc["ok"]:
+        if keep:
             passed.append(rec)
         else:
             out.unlink(missing_ok=True)       # 불합격 파일 정리
@@ -386,6 +391,8 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--out", help="단일 생성 출력 경로(--single 시)")
     ap.add_argument("--candidates", type=int, default=3, help="합격 후보 목표 장수(기본 3)")
     ap.add_argument("--max-retries", type=int, default=5, help="톤 불합격 시 추가 재생성 상한")
+    ap.add_argument("--skip-tone", dest="skip_tone", action="store_true",
+                    help="밝은톤 tone_check 임계 스킵(다크 톤 곡 예외 — 추모/야간 등)")
     ap.add_argument("--ref-dir", default=str(STYLE_REF_DIR), help="style_ref 폴더")
     ap.add_argument("--no-ref", action="store_true", help="멀티레퍼런스 비활성")
     ap.add_argument("--single", action="store_true", help="후보 루프 없이 1장만")
@@ -449,7 +456,7 @@ def main(argv: list[str]) -> int:
     res = generate_candidates(prompt, args.slug, width=width, height=height,
                               base_seed=args.seed, target=args.candidates,
                               max_retries=args.max_retries, reference_images=refs,
-                              scene_anchor=args.anchor)
+                              scene_anchor=args.anchor, skip_tone=args.skip_tone)
     dt = time.monotonic() - t0
     print(f"\n[fal_bg] 후보 {res['secured']}/{res['target']}장 확보 "
           f"(시도 {len(res['attempts'])}회) in {dt:.1f}s")
