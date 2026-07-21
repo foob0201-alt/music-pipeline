@@ -112,7 +112,7 @@
 
 **규칙:**
 - **파랑은 GRADE에서 나온다.** 하늘·물·바다 같은 환경 오브제는 **가사에 실재할 때만** SCENE에 넣는다(장면을 파랗게 만들려 바다/하늘을 억지 삽입 금지).
-- **네거티브 프롬프트 미사용**(FLUX.2 Pro 미지원). 회색끼·세피아·우울 톤 배제는 **긍정문으로 승계** — "vivid clean saturation · clear transparent air · high-key exposure · no deep black". (위 '밝은 톤·우울 톤 금지'의 긍정 표현판)
+- **네거티브 말미 필수**(원표준 복원 2026-07-21). flux-2-pro 는 negative 필드가 없어 **프롬프트 말미에 고정 네거티브 문자열**로 명시한다: `No yellow tint, no sepia, no film wash, no haze, no muted grey, no gloom.` 긍정 GRADE와 병행. **조립 구조 = SCENE(가사 앵커) → CAMERA(구도) → 긍정 GRADE(`crisp high-key exposure, cool blue-leaning color grade, vivid clean saturation, clear transparent air`) → 네거티브 말미.** (A/B 실측 2변형×2시드 A 우세로 확정 — genlog 검증 구조와 동일)
 - **야간 정서 곡**은 `--grade bright_nocturne`(딥블랙·침울 금지, 빛 살림).
 
 ### 3.2 무인 게이트1 (scene_check — 2026-07-03, 헌장 §1.4 사인오프)
@@ -250,3 +250,4 @@
 - v3 — **BGM 모션 표준 v1**(인스트루멘털: 음표 선화 모티프 + 모션 레이어 최대 3개 + 빛가루 공존 + 게이트1 재승인 규칙) 추가. radio 기준 트랙.
 - v4 — **fal_bg 프롬프트 3층 원칙(§3.1)** 추가. SCENE(가사 앵커)/CAMERA/GRADE 분리, 네거티브 제거→긍정 승계, 바다/하늘 오브제는 가사 실재 시만 SCENE 투입, 야간곡 `bright_nocturne`. 밝은 톤·회색/세피아 금지 취지를 긍정문으로 승계.
 - v5 — **무인 게이트1(§3.2)** 추가(헌장 §1.4 사인오프). scene_check 헤드리스 비전 + tone_check + 합성 무결성 → `.cover_ok` 자동 서명, 2연속 FAIL→HOLD_COVER, 업로드 5건당 1건 spot-check. "게이트1 사람 승인 필수" 규칙을 검증기 체계로 대체.
+- **2026-07-21 네거티브 말미 복원 확정(§3.1)** — A/B 실측(2변형×2시드) A 우세(황색억제 R-B −36.0 고정·회색비 우세·육안 우세). 07-03경 무사인오프 제거 건(fal_bg `48e1a22`, HOUSE_NEGATIVE 삭제)은 오류 #6(실행자 드리프트) 사례로 기록. flux-2-pro negative 필드 부재 → 프롬프트 말미 고정 문자열로 원표준 복귀.

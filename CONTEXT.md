@@ -186,7 +186,7 @@ tracked per track to avoid catalog-wide sameness.
 | 3 | Double-nested folders / misplaced client_secret | repo path | C:\hades migration | **VERIFY DONE** |
 | 4 | OneDrive locking/placeholder during renders | repo in OneDrive | same migration; OneDrive = free 5GB cold storage for audio originals ONLY, no pipeline role | **VERIFY DONE** |
 | 5 | fal bg upscale blur / center glow | 1024×576 source | resolution↑ glow↓ tuning | OPEN |
-| 6 | Executor gate self-approval drift | oversight gap | G2 item 10 + auditor direct-to-CS line | auditor NOT BUILT |
+| 6 | Executor gate self-approval drift | oversight gap | G2 item 10 + auditor direct-to-CS line + **표준문서(VISUAL §3~5)·fal_bg 프롬프트부 변경 커밋은 同일자 decision_log 사인오프 엔트리 필수 — 훅/사전점검 후보(등재, 구현 별도)** | auditor NOT BUILT; 네거티브 드리프트(fal_bg 48e1a22, 무사인오프 제거) 07-21 기록·원표준 복원 |
 | 7 | Unexplained render-time variance (8min vs 25–30min) | unknown | one-line note in RESULT.txt per track; investigate zoompan/system load | OPEN |
 | 8 | PowerShell hook blind spot | matcher covers Bash/Read/Edit/Write only | extend matcher | OPEN |
 
