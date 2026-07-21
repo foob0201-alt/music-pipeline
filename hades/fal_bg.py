@@ -43,6 +43,10 @@ for _s in (sys.stdout, sys.stderr):
 
 MODEL_TXT2IMG = "fal-ai/flux-2-pro"        # 텍스트→이미지 (레퍼런스 없음)
 MODEL_EDIT = "fal-ai/flux-2-pro/edit"      # 멀티레퍼런스 (image_urls, 최대 9장)
+# img2img (strength 지원) — FLUX.1 dev 예외 경로. 기존 배경 생성(FLUX.2 pro)과 별개.
+# 사유: flux-2-pro/edit 는 strength 파라미터를 노출하지 않음. strength 제어가 필요한
+# 트랙(예: kkotboda 인물 커버)만 이 엔드포인트 사용. (Navigator 승인 2026-07-08)
+MODEL_IMG2IMG = "fal-ai/flux/dev/image-to-image"
 REPO = Path(__file__).resolve().parent.parent
 STYLE_REF_DIR = REPO / "style_ref"
 
@@ -257,6 +261,68 @@ def generate_bg(prompt: str, out_path: str | Path,
             "genlog": genlog, "model": model, "refs": ref_urls}
 
 
+def generate_img2img(prompt: str, input_image: str | Path, out_path: str | Path, *,
+                     strength: float, width: int = 2560, height: int = 1440,
+                     seed: int | None = None, negative: str | None = None) -> dict:
+    """FLUX.1 dev image-to-image (strength 지원). input_image 는 fal 업로드 전용(로컬 원본 보존).
+    strength: 0~1, 높을수록 원본에서 더 벗어남(스타일 강). {path,bytes,width,height,seed,genlog,model} 반환."""
+    _require_key()
+    import fal_client                                  # 키 검증 후 지연 임포트
+
+    # 원본은 로컬 보존. fal CDN 업로드 우선, 스토리지 인증 실패(403 등) 시 data URI 인라인 폴백.
+    try:
+        img_url = fal_client.upload_file(str(input_image))
+    except Exception as _up_e:                         # noqa: BLE001
+        print(f"[img2img] upload_file 실패({_up_e!r}) → data URI 인라인 폴백", file=sys.stderr)
+        img_url = fal_client.encode_file(str(input_image))
+    args = {
+        "image_url": img_url,
+        "prompt": prompt,
+        "strength": float(strength),
+        "image_size": {"width": int(width), "height": int(height)},
+        "num_inference_steps": 40,
+        "num_images": 1,
+        "enable_safety_checker": False,                # 실제 인물 원본 — 세이프티 차단 회피(인물 예외)
+    }
+    if negative:
+        args["negative_prompt"] = negative
+    if seed is not None:
+        args["seed"] = int(seed)
+
+    result = fal_client.subscribe(MODEL_IMG2IMG, arguments=args, with_logs=True) or {}
+    images = result.get("images") or []
+    url = images[0].get("url") if images else None
+    if not url:
+        raise RuntimeError(f"이미지 URL 없음 — 응답 키: {list(result.keys())}")
+
+    out = Path(out_path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_bytes(_download(url))
+
+    aw = images[0].get("width"); ah = images[0].get("height")
+    if not (aw and ah):
+        try:
+            from PIL import Image
+            with Image.open(out) as im:
+                aw, ah = im.size
+        except Exception:                              # noqa: BLE001
+            aw, ah = None, None
+
+    used_seed = seed if seed is not None else result.get("seed")
+    entry = {
+        "model": MODEL_IMG2IMG, "prompt": prompt, "negative": negative,
+        "strength": float(strength), "seed": used_seed, "seed_requested": seed,
+        "input_image": str(input_image),
+        "requested": {"width": int(width), "height": int(height)},
+        "actual": {"width": aw, "height": ah},
+        "output": out.name, "bytes": out.stat().st_size,
+        "created": time.strftime("%Y-%m-%dT%H:%M:%S"),
+    }
+    genlog = _write_genlog(out, entry)
+    return {"path": out, "bytes": out.stat().st_size, "width": aw, "height": ah,
+            "seed": used_seed, "genlog": genlog, "model": MODEL_IMG2IMG}
+
+
 def generate_candidates(prompt: str, slug: str, *, width: int = 2560, height: int = 1440,
                         base_seed: int | None = None, target: int = 3, max_retries: int = 5,
                         reference_images: list | None = None,
@@ -323,9 +389,27 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--ref-dir", default=str(STYLE_REF_DIR), help="style_ref 폴더")
     ap.add_argument("--no-ref", action="store_true", help="멀티레퍼런스 비활성")
     ap.add_argument("--single", action="store_true", help="후보 루프 없이 1장만")
+    ap.add_argument("--input-image", dest="input_image",
+                    help="img2img 입력 이미지(로컬 경로). 지정 시 FLUX.1 dev image-to-image 사용")
+    ap.add_argument("--strength", type=float, default=0.65,
+                    help="img2img strength(0~1). 높을수록 원본에서 더 벗어남(스타일 강)")
+    ap.add_argument("--negative", help="네거티브 프롬프트(img2img 전용)")
     args = ap.parse_args(argv)
 
     width, height = _parse_size(args.size)
+
+    # ── img2img 경로 (FLUX.1 dev, strength) — --input-image 지정 시. text2img 경로는 그대로 유지 ──
+    if args.input_image:
+        if not args.prompt:
+            ap.error("--input-image 사용 시 --prompt 필요(전체 프롬프트 직접 지정)")
+        out = args.out or (REPO / "tracks" / (args.slug or "img2img") / "candidates" / "out.jpg")
+        t0 = time.monotonic()
+        info = generate_img2img(args.prompt, args.input_image, out, strength=args.strength,
+                                width=width, height=height, seed=args.seed, negative=args.negative)
+        print(f"[fal_bg img2img] OK: {info['path']} ({info['bytes']}B, {info['width']}x{info['height']}, "
+              f"seed={info['seed']}, strength={args.strength}, model={info['model']}) in {time.monotonic()-t0:.1f}s")
+        print(f"[fal_bg] genlog: {info['genlog']}")
+        return 0
 
     # 프롬프트 결정 (3층: SCENE→CAMERA→GRADE)
     if args.prompt:
